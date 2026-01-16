@@ -1,12 +1,12 @@
-<div class="container-fluid">
+<div>
     <!-- Page Header -->
-    <div class="mb-4">
-        <h1 class="display-6 fw-bold mb-2">안녕하세요, {{ userName }}님!</h1>
-        <p class="text-secondary fs-6 mb-0">오늘도 목표를 향해 한 걸음 나아가는 하루 되세요.</p>
+    <div class="page-header">
+        <h1 class="page-title">안녕하세요, {{ userName }}님!</h1>
+        <p class="page-subtitle">오늘도 목표를 향해 한 걸음 나아가는 하루 되세요.</p>
     </div>
 
     <!-- Goal Achievement Stats -->
-    <div class="row g-3 mb-4">
+    <div class="row g-4 mb-4">
         <div class="col-12 col-md-6 col-xl-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
@@ -100,7 +100,7 @@
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-check-circle text-primary"></i> 오늘의 업무
                         </h5>
-                        <a href="#/execution/today" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                        <a href="#/execution/today" class="text-primary fw-medium small">
                             전체 보기 <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -136,13 +136,13 @@
             </div>
 
             <!-- Weekly Progress Chart -->
-            <div class="chart-container mb-4">
-                <div class="chart-header">
-                    <h5 class="chart-title">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
                         <i class="bi bi-bar-chart text-primary"></i> 이번 주 실행 현황
                     </h5>
+                    <canvas ref="weeklyChart" style="max-height: 300px;"></canvas>
                 </div>
-                <canvas ref="weeklyChart" style="max-height: 300px;"></canvas>
             </div>
 
             <!-- My Goals -->
@@ -152,7 +152,7 @@
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-bullseye text-primary"></i> 나의 목표
                         </h5>
-                        <a href="#/goals/my-goals" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                        <a href="#/goals/my-goals" class="text-primary fw-medium small">
                             전체 보기 <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -233,7 +233,7 @@
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-chat-left-text text-info"></i> 최근 피드백
                         </h5>
-                        <a href="#/growth/my-map" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                        <a href="#/growth/my-map" class="text-primary fw-medium small">
                             전체 보기 <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -263,17 +263,17 @@
             </div>
 
             <!-- Growth Radar -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h5 class="chart-title">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
                         <i class="bi bi-pentagon text-success"></i> 역량 현황
                     </h5>
-                </div>
-                <canvas ref="radarChart" style="max-height: 250px;"></canvas>
-                <div class="text-center mt-3">
-                    <a href="#/growth/my-map" class="btn btn-sm btn-outline-primary">
-                        상세 보기 <i class="bi bi-arrow-right"></i>
-                    </a>
+                    <canvas ref="radarChart" style="max-height: 250px;"></canvas>
+                    <div class="text-center mt-3">
+                        <a href="#/growth/my-map" class="btn btn-sm btn-outline-primary">
+                            상세 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

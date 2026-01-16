@@ -31,6 +31,13 @@ export default {
     computed: {
         toggleIconClass() {
             return this.sidebarIconMode ? 'bi-chevron-right' : 'bi-chevron-left';
+        },
+        // 역할별 메뉴 표시 권한
+        canAccessSettings() {
+            // HR 또는 임원만 환경설정(직원관리, 조직도) 접근 가능
+            return window.hasRole(window.ROLES.HR) ||
+                   window.hasRole(window.ROLES.STRATEGY) ||
+                   window.isExecutive();
         }
     },
     mounted() {

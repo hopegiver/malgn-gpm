@@ -97,8 +97,8 @@
                 </div>
             </div>
 
-            <!-- 환경설정 -->
-            <div class="nav-accordion">
+            <!-- 환경설정 (HR/임원만) -->
+            <div class="nav-accordion" v-if="canAccessSettings">
                 <div class="accordion-header" :class="{ active: isAccordionOpen('settings') }" @click="toggleAccordion('settings')">
                     <i class="bi bi-gear icon"></i>
                     <span v-show="!sidebarIconMode">환경설정</span>
@@ -109,7 +109,7 @@
                         <span class="nav-label">직원 관리</span>
                     </a>
                     <a href="#/settings/organization" class="nav-link" :class="{ active: isActive('/settings/organization') }">
-                        <span class="nav-label">조직도</span>
+                        <span class="nav-label">조직도 관리</span>
                     </a>
                 </div>
             </div>

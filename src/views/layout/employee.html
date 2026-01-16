@@ -72,12 +72,15 @@
 
     <!-- Body Container -->
     <div class="app-body">
+        <!-- Sidebar Overlay (모바일) -->
+        <div class="sidebar-overlay" :class="{ 'show': isMobile && sidebarVisible }" @click="closeSidebar"></div>
+
         <!-- Sidebar -->
-        <aside class="app-sidebar" :class="{ 'icon-mode': sidebarIconMode }">
+        <aside class="app-sidebar" :class="{ 'icon-mode': sidebarIconMode, 'show': sidebarVisible }">
             <nav class="sidebar-nav">
                 <!-- 대시보드 -->
                 <div class="nav-item">
-                    <a href="#/dashboard/employee" class="nav-link" :class="{ active: isActive('/dashboard/employee') }">
+                    <a href="#/dashboard/employee" class="nav-link" :class="{ active: isActive('/dashboard/employee') }" @click="closeSidebar">
                         <i class="bi bi-house-door"></i>
                         <span class="nav-label" v-show="!sidebarIconMode">대시보드</span>
                     </a>
@@ -91,13 +94,13 @@
                         <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                     </div>
                     <div class="accordion-content" :class="{ open: isAccordionOpen('goals') }" v-show="!sidebarIconMode">
-                        <a href="#/goals/my-goals" class="nav-link" :class="{ active: isActive('/goals/my-goals') }">
+                        <a href="#/goals/my-goals" class="nav-link" :class="{ active: isActive('/goals/my-goals') }" @click="closeSidebar">
                             <span class="nav-label">나의 목표</span>
                         </a>
-                        <a href="#/goals/team-view" class="nav-link" :class="{ active: isActive('/goals/team-view') }">
+                        <a href="#/goals/team-view" class="nav-link" :class="{ active: isActive('/goals/team-view') }" @click="closeSidebar">
                             <span class="nav-label">팀 목표 보기</span>
                         </a>
-                        <a href="#/goals/company-view" class="nav-link" :class="{ active: isActive('/goals/company-view') }">
+                        <a href="#/goals/company-view" class="nav-link" :class="{ active: isActive('/goals/company-view') }" @click="closeSidebar">
                             <span class="nav-label">회사 목표 보기</span>
                         </a>
                     </div>
@@ -111,16 +114,16 @@
                         <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                     </div>
                     <div class="accordion-content" :class="{ open: isAccordionOpen('execution') }" v-show="!sidebarIconMode">
-                        <a href="#/execution/today" class="nav-link" :class="{ active: isActive('/execution/today') }">
+                        <a href="#/execution/today" class="nav-link" :class="{ active: isActive('/execution/today') }" @click="closeSidebar">
                             <span class="nav-label">오늘의 업무</span>
                         </a>
-                        <a href="#/execution/weekly" class="nav-link" :class="{ active: isActive('/execution/weekly') }">
+                        <a href="#/execution/weekly" class="nav-link" :class="{ active: isActive('/execution/weekly') }" @click="closeSidebar">
                             <span class="nav-label">이번 주</span>
                         </a>
-                        <a href="#/execution/weekly-report" class="nav-link" :class="{ active: isActive('/execution/weekly-report') }">
+                        <a href="#/execution/weekly-report" class="nav-link" :class="{ active: isActive('/execution/weekly-report') }" @click="closeSidebar">
                             <span class="nav-label">주간 보고서</span>
                         </a>
-                        <a href="#/execution/monthly-stats" class="nav-link" :class="{ active: isActive('/execution/monthly-stats') }">
+                        <a href="#/execution/monthly-stats" class="nav-link" :class="{ active: isActive('/execution/monthly-stats') }" @click="closeSidebar">
                             <span class="nav-label">월간 통계</span>
                         </a>
                     </div>
@@ -134,10 +137,10 @@
                         <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                     </div>
                     <div class="accordion-content" :class="{ open: isAccordionOpen('growth') }" v-show="!sidebarIconMode">
-                        <a href="#/growth/my-map" class="nav-link" :class="{ active: isActive('/growth/my-map') }">
+                        <a href="#/growth/my-map" class="nav-link" :class="{ active: isActive('/growth/my-map') }" @click="closeSidebar">
                             <span class="nav-label">나의 성장 맵</span>
                         </a>
-                        <a href="#/growth/learning" class="nav-link" :class="{ active: isActive('/growth/learning') }">
+                        <a href="#/growth/learning" class="nav-link" :class="{ active: isActive('/growth/learning') }" @click="closeSidebar">
                             <span class="nav-label">학습 & 개발</span>
                         </a>
                     </div>
@@ -151,10 +154,10 @@
                         <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                     </div>
                     <div class="accordion-content" :class="{ open: isAccordionOpen('review') }" v-show="!sidebarIconMode">
-                        <a href="#/review/self" class="nav-link" :class="{ active: isActive('/review/self') }">
+                        <a href="#/review/self" class="nav-link" :class="{ active: isActive('/review/self') }" @click="closeSidebar">
                             <span class="nav-label">자기평가</span>
                         </a>
-                        <a href="#/review/history" class="nav-link" :class="{ active: isActive('/review/history') }">
+                        <a href="#/review/history" class="nav-link" :class="{ active: isActive('/review/history') }" @click="closeSidebar">
                             <span class="nav-label">평가 이력</span>
                         </a>
                     </div>
@@ -168,10 +171,10 @@
                         <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                     </div>
                     <div class="accordion-content" :class="{ open: isAccordionOpen('settings') }" v-show="!sidebarIconMode">
-                        <a href="#/settings/employees" class="nav-link" :class="{ active: isActive('/settings/employees') }">
+                        <a href="#/settings/employees" class="nav-link" :class="{ active: isActive('/settings/employees') }" @click="closeSidebar">
                             <span class="nav-label">직원 관리</span>
                         </a>
-                        <a href="#/settings/organization" class="nav-link" :class="{ active: isActive('/settings/organization') }">
+                        <a href="#/settings/organization" class="nav-link" :class="{ active: isActive('/settings/organization') }" @click="closeSidebar">
                             <span class="nav-label">조직도 관리</span>
                         </a>
                     </div>

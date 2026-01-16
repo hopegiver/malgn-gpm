@@ -19,6 +19,8 @@ export default {
         return {
             appName: window.APP_NAME,
             sidebarIconMode: false,
+            sidebarVisible: false, // 모바일에서 사이드바 표시 여부
+            isMobile: false,
             openAccordions: initialOpenAccordions,
             searchQuery: '',
             notificationCount: 3,
@@ -79,14 +81,32 @@ export default {
             return '직원';
         },
         checkScreenSize() {
-            if (window.innerWidth <= 1024) {
-                this.sidebarIconMode = true;
+            const wasMobile = this.isMobile;
+            this.isMobile = window.innerWidth < 768; // Bootstrap md breakpoint
+
+            if (this.isMobile) {
+                // 모바일: 기본적으로 사이드바 숨김
+                if (!wasMobile) {
+                    this.sidebarVisible = false;
+                }
             } else {
-                this.sidebarIconMode = false;
+                // 데스크톱: 사이드바 항상 표시
+                this.sidebarVisible = true;
             }
         },
         toggleSidebar() {
-            this.sidebarIconMode = !this.sidebarIconMode;
+            if (this.isMobile) {
+                // 모바일: 사이드바 전체 토글
+                this.sidebarVisible = !this.sidebarVisible;
+            } else {
+                // 데스크톱: 아이콘 모드 토글
+                this.sidebarIconMode = !this.sidebarIconMode;
+            }
+        },
+        closeSidebar() {
+            if (this.isMobile) {
+                this.sidebarVisible = false;
+            }
         },
         toggleAccordion(name) {
             const index = this.openAccordions.indexOf(name);

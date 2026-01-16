@@ -3,7 +3,7 @@ export default {
         return {
             appName: window.APP_NAME,
             sidebarIconMode: false,
-            openAccordions: ['goals', 'execution', 'growth', 'review'],
+            openAccordions: [], // 초기에는 모두 닫혀있음
             searchQuery: '',
             notificationCount: 3,
             feedbackCount: 2,
@@ -27,9 +27,13 @@ export default {
 
         // 현재 경로에 따라 아코디언 열기
         this.openCurrentAccordion();
+
+        // 라우트 변경 시 아코디언 자동 업데이트
+        window.addEventListener('hashchange', this.openCurrentAccordion);
     },
     beforeUnmount() {
         window.removeEventListener('resize', this.checkScreenSize);
+        window.removeEventListener('hashchange', this.openCurrentAccordion);
     },
     methods: {
         loadUserInfo() {
@@ -62,9 +66,11 @@ export default {
         toggleAccordion(name) {
             const index = this.openAccordions.indexOf(name);
             if (index > -1) {
+                // 이미 열려있으면 닫기
                 this.openAccordions.splice(index, 1);
             } else {
-                this.openAccordions.push(name);
+                // 다른 모든 아코디언 닫고 선택한 것만 열기
+                this.openAccordions = [name];
             }
         },
         isAccordionOpen(name) {
@@ -73,22 +79,15 @@ export default {
         openCurrentAccordion() {
             const path = window.location.hash.substring(1);
 
+            // 현재 경로에 맞는 아코디언 하나만 열기
             if (path.startsWith('/goals')) {
-                if (!this.openAccordions.includes('goals')) {
-                    this.openAccordions.push('goals');
-                }
+                this.openAccordions = ['goals'];
             } else if (path.startsWith('/execution')) {
-                if (!this.openAccordions.includes('execution')) {
-                    this.openAccordions.push('execution');
-                }
+                this.openAccordions = ['execution'];
             } else if (path.startsWith('/growth')) {
-                if (!this.openAccordions.includes('growth')) {
-                    this.openAccordions.push('growth');
-                }
+                this.openAccordions = ['growth'];
             } else if (path.startsWith('/review')) {
-                if (!this.openAccordions.includes('review')) {
-                    this.openAccordions.push('review');
-                }
+                this.openAccordions = ['review'];
             }
         },
         isActive(path) {

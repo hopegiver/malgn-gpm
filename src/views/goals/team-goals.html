@@ -1,0 +1,239 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀 목표 관리</h1>
+        <p class="page-subtitle">{{ teamName }} 팀의 목표를 설정하고 팀원들의 목표를 관리하세요</p>
+    </div>
+
+    <!-- Team Goal Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">팀 목표 달성률</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.teamGoalAchievement }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi" :class="stats.trend >= 0 ? 'bi-arrow-up text-success' : 'bi-arrow-down text-danger'"></i>
+                    {{ Math.abs(stats.trend) }}%
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">활성 목표</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.activeGoals }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">개</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">완료된 목표</div>
+                <div class="fw-bold text-info" style="font-size: 2.5rem;">{{ stats.completedGoals }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">개</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 진행률</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.avgProgress }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">팀 전체</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button class="btn btn-primary" @click="openAddGoalModal">
+                            <i class="bi bi-plus-circle"></i> 팀 목표 추가
+                        </button>
+                        <button class="btn btn-outline-primary" @click="alignGoals">
+                            <i class="bi bi-diagram-3"></i> 목표 정렬
+                        </button>
+                        <button class="btn btn-outline-secondary" @click="exportGoals">
+                            <i class="bi bi-download"></i> 목표 내보내기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Goals List -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-bullseye text-primary"></i> 팀 목표 목록
+                    </h5>
+
+                    <div v-if="teamGoals.length === 0" class="text-center py-5 text-secondary">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-3 mb-0">등록된 팀 목표가 없습니다.</p>
+                        <button class="btn btn-primary mt-3" @click="openAddGoalModal">
+                            첫 팀 목표 추가하기
+                        </button>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="goal in teamGoals" :key="goal.id" class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">{{ goal.title }}</h6>
+                                    <p class="text-secondary mb-2 small">{{ goal.description }}</p>
+                                    <div class="d-flex gap-3 small text-secondary">
+                                        <span><i class="bi bi-calendar"></i> {{ goal.dueDate }}</span>
+                                        <span><i class="bi bi-person"></i> {{ goal.owner }}</span>
+                                        <span class="badge" :class="'bg-' + getStatusClass(goal.status)">{{ goal.status }}</span>
+                                    </div>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" @click="viewGoalDetail(goal.id)" title="상세보기">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" @click="editGoal(goal.id)" title="수정">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" @click="deleteGoal(goal.id)" title="삭제">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-secondary">진행률</span>
+                                    <span class="fw-bold">{{ goal.achievement }}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" :class="'bg-' + getProgressClass(goal.achievement)"
+                                         :style="{ width: goal.achievement + '%' }" role="progressbar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members' Goals -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-people text-success"></i> 팀원 목표 현황
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">팀원</th>
+                                    <th class="border-0">직급</th>
+                                    <th class="border-0">목표 수</th>
+                                    <th class="border-0 text-center">평균 달성률</th>
+                                    <th class="border-0">마지막 업데이트</th>
+                                    <th class="border-0 text-center">상태</th>
+                                    <th class="border-0 text-center">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="member in teamMembers" :key="member.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                                {{ member.initial }}
+                                            </div>
+                                            <span class="fw-medium">{{ member.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ member.position }}</td>
+                                    <td>{{ member.goalCount }}</td>
+                                    <td class="text-center">
+                                        <div class="fw-bold">{{ member.avgAchievement }}%</div>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar" :class="'bg-' + getProgressClass(member.avgAchievement)"
+                                                 :style="{ width: member.avgAchievement + '%' }"></div>
+                                        </div>
+                                    </td>
+                                    <td>{{ member.lastUpdate }}</td>
+                                    <td class="text-center">
+                                        <span class="badge" :class="'bg-' + member.statusClass">{{ member.status }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" @click="viewMemberGoals(member.id)">
+                                            목표 보기
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Goal Modal -->
+    <div v-if="showGoalModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeGoalModal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ goalForm.id ? '팀 목표 수정' : '팀 목표 추가' }}</h5>
+                    <button type="button" class="btn-close" @click="closeGoalModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">목표 제목</label>
+                        <input type="text" class="form-control" v-model="goalForm.title"
+                               placeholder="예: Q1 신규 기능 개발 완료">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">목표 설명</label>
+                        <textarea class="form-control" rows="3" v-model="goalForm.description"
+                                  placeholder="목표에 대한 자세한 설명을 입력하세요"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">담당자</label>
+                            <select class="form-select" v-model="goalForm.owner">
+                                <option value="">선택하세요</option>
+                                <option v-for="member in teamMembers" :key="member.id" :value="member.name">
+                                    {{ member.name }} ({{ member.position }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">마감일</label>
+                            <input type="date" class="form-control" v-model="goalForm.dueDate">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">상위 목표 (선택)</label>
+                        <select class="form-select" v-model="goalForm.parentGoalId">
+                            <option value="">없음 (최상위 목표)</option>
+                            <option v-for="goal in teamGoals" :key="goal.id" :value="goal.id">
+                                {{ goal.title }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeGoalModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="saveGoal">
+                        {{ goalForm.id ? '수정' : '추가' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

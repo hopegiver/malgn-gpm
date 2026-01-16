@@ -1,0 +1,138 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀원 평가</h1>
+        <p class="page-subtitle">팀원들의 성과를 평가하고 평가 결과를 관리하세요</p>
+    </div>
+
+    <!-- Evaluation Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평가 완료</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.completed }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">/ {{ stats.total }}명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평가 대기</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.pending }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 점수</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.avgScore }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">/ 100점</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members Evaluation -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clipboard-check text-primary"></i> 팀원 평가 현황
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">팀원</th>
+                                    <th class="border-0 text-center">최근 평가</th>
+                                    <th class="border-0 text-center">평가 점수</th>
+                                    <th class="border-0 text-center">목표 달성률</th>
+                                    <th class="border-0 text-center">등급</th>
+                                    <th class="border-0 text-center">평가</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="member in teamMembers" :key="member.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                                {{ member.initial }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ member.name }}</div>
+                                                <div class="small text-secondary">{{ member.position }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ member.lastEvaluationDate }}</td>
+                                    <td class="text-center">
+                                        <span class="fw-bold">{{ member.score }}</span>
+                                        <span class="text-secondary">/100</span>
+                                    </td>
+                                    <td class="text-center">{{ member.goalAchievement }}%</td>
+                                    <td class="text-center">
+                                        <span class="badge" :class="'bg-' + member.gradeClass">{{ member.grade }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-primary" @click="startEvaluation(member.id)"
+                                                v-if="!member.evaluated">
+                                            평가하기
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" @click="viewEvaluation(member.id)"
+                                                v-else>
+                                            평가 보기
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Modal -->
+    <div v-if="showEvaluationModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeEvaluationModal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ currentMember?.name }} 평가</h5>
+                    <button type="button" class="btn-close" @click="closeEvaluationModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">목표 달성률 평가</label>
+                        <input type="number" class="form-control" v-model="evaluationForm.goalScore" min="0" max="100">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">역량 평가</label>
+                        <input type="number" class="form-control" v-model="evaluationForm.competencyScore" min="0" max="100">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">협업 평가</label>
+                        <input type="number" class="form-control" v-model="evaluationForm.collaborationScore" min="0" max="100">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">종합 평가</label>
+                        <textarea class="form-control" rows="4" v-model="evaluationForm.comments"
+                                  placeholder="팀원의 강점, 개선점, 발전 방향 등을 작성해주세요"></textarea>
+                    </div>
+
+                    <div class="alert alert-info border-0">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Tip:</strong> 구체적이고 건설적인 평가가 팀원의 성장에 도움이 됩니다.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeEvaluationModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="submitEvaluation">평가 완료</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

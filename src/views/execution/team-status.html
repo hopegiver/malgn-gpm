@@ -1,0 +1,201 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀 실행 현황</h1>
+        <p class="page-subtitle">{{ teamName }} 팀의 실시간 업무 진행 상황을 모니터링하세요</p>
+    </div>
+
+    <!-- Team Status Overview -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">금주 완료율</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.weeklyCompletion }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi" :class="stats.weeklyTrend >= 0 ? 'bi-arrow-up text-success' : 'bi-arrow-down text-danger'"></i>
+                    지난주 대비 {{ Math.abs(stats.weeklyTrend) }}%
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">진행 중 업무</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.ongoingTasks }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">개</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">완료된 업무</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.completedTasks }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">금주</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">지연 업무</div>
+                <div class="fw-bold text-danger" style="font-size: 2.5rem;">{{ stats.delayedTasks }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">주의 필요</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members Status -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-people text-primary"></i> 팀원 실행 현황
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">팀원</th>
+                                    <th class="border-0 text-center">오늘</th>
+                                    <th class="border-0 text-center">이번 주</th>
+                                    <th class="border-0 text-center">완료율</th>
+                                    <th class="border-0">현재 작업</th>
+                                    <th class="border-0 text-center">상태</th>
+                                    <th class="border-0 text-center">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="member in teamMembers" :key="member.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                                {{ member.initial }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ member.name }}</div>
+                                                <div class="small text-secondary">{{ member.position }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark">{{ member.todayCompleted }}/{{ member.todayTotal }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark">{{ member.weeklyCompleted }}/{{ member.weeklyTotal }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="fw-bold">{{ member.completionRate }}%</div>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar" :class="'bg-' + getProgressClass(member.completionRate)"
+                                                 :style="{ width: member.completionRate + '%' }"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small">{{ member.currentTask }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge" :class="'bg-' + member.statusClass">{{ member.status }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" @click="viewMemberDetail(member.id)">
+                                            상세보기
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clock-history text-success"></i> 최근 활동
+                    </h5>
+
+                    <div class="timeline">
+                        <div v-for="activity in recentActivities" :key="activity.id" class="timeline-item mb-3">
+                            <div class="d-flex gap-3">
+                                <div class="timeline-marker" :class="'bg-' + activity.typeClass"></div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="fw-medium small">{{ activity.memberName }}</div>
+                                        <div class="text-secondary small">{{ activity.time }}</div>
+                                    </div>
+                                    <div class="small text-secondary">{{ activity.action }}</div>
+                                    <div class="small text-primary mt-1">{{ activity.taskTitle }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> 주의 필요 업무
+                    </h5>
+
+                    <div v-if="delayedTasks.length === 0" class="text-center py-4 text-secondary">
+                        <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0 small">지연된 업무가 없습니다!</p>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="task in delayedTasks" :key="task.id" class="border-start border-danger border-3 ps-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <div class="fw-medium small">{{ task.title }}</div>
+                                <span class="badge bg-danger">{{ task.daysDelayed }}일 지연</span>
+                            </div>
+                            <div class="small text-secondary mb-1">담당: {{ task.owner }}</div>
+                            <div class="small text-secondary">마감: {{ task.dueDate }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Progress Chart -->
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-bar-chart text-primary"></i> 주간 업무 진행 추이
+                    </h5>
+                    <canvas ref="weeklyProgressChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-pie-chart text-success"></i> 업무 분포
+                    </h5>
+                    <canvas ref="taskDistributionChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style scoped>
+.timeline-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+</style>

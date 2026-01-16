@@ -1,0 +1,162 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀 피드백</h1>
+        <p class="page-subtitle">팀원들에게 피드백을 제공하고 성장을 지원하세요</p>
+    </div>
+
+    <!-- Feedback Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">이번 달 피드백</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.monthlyFeedback }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">건</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">작성 대기</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.pendingFeedback }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 응답률</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.responseRate }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">팀원 피드백</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Action -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <button class="btn btn-primary" @click="openFeedbackModal">
+                        <i class="bi bi-plus-circle"></i> 피드백 작성
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members Feedback Status -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-chat-left-text text-primary"></i> 팀원별 피드백 현황
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">팀원</th>
+                                    <th class="border-0 text-center">이번 달</th>
+                                    <th class="border-0 text-center">누적</th>
+                                    <th class="border-0">마지막 피드백</th>
+                                    <th class="border-0 text-center">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="member in teamMembers" :key="member.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                                {{ member.initial }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ member.name }}</div>
+                                                <div class="small text-secondary">{{ member.position }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ member.monthlyFeedback }}</td>
+                                    <td class="text-center">{{ member.totalFeedback }}</td>
+                                    <td>{{ member.lastFeedbackDate }}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" @click="giveFeedback(member.id)">
+                                            피드백 작성
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Feedback -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clock-history text-success"></i> 최근 피드백
+                    </h5>
+
+                    <div v-for="feedback in recentFeedback" :key="feedback.id" class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="fw-medium">{{ feedback.memberName }}</span>
+                                <span class="text-secondary ms-2">{{ feedback.date }}</span>
+                            </div>
+                            <span class="badge" :class="'bg-' + feedback.typeClass">{{ feedback.type }}</span>
+                        </div>
+                        <div class="text-secondary small">{{ feedback.content }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div v-if="showFeedbackModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeFeedbackModal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">피드백 작성</h5>
+                    <button type="button" class="btn-close" @click="closeFeedbackModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">대상 팀원</label>
+                        <select class="form-select" v-model="feedbackForm.memberId">
+                            <option value="">선택하세요</option>
+                            <option v-for="member in teamMembers" :key="member.id" :value="member.id">
+                                {{ member.name }} ({{ member.position }})
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">피드백 유형</label>
+                        <select class="form-select" v-model="feedbackForm.type">
+                            <option value="positive">긍정적 피드백</option>
+                            <option value="constructive">건설적 피드백</option>
+                            <option value="coaching">코칭</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">피드백 내용</label>
+                        <textarea class="form-control" rows="5" v-model="feedbackForm.content"
+                                  placeholder="구체적이고 실행 가능한 피드백을 작성해주세요"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeFeedbackModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="submitFeedback">작성 완료</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

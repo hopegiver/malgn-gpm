@@ -1,0 +1,168 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">1:1 미팅</h1>
+        <p class="page-subtitle">팀원들과의 정기적인 1:1 미팅을 관리하세요</p>
+    </div>
+
+    <!-- Meeting Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">이번 달 미팅</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.monthlyMeetings }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">회</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">예정된 미팅</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.upcomingMeetings }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">회</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 주기</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.avgFrequency }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">주</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Action -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <button class="btn btn-primary" @click="openScheduleModal">
+                        <i class="bi bi-calendar-plus"></i> 미팅 예약
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Meetings -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-calendar-event text-primary"></i> 예정된 미팅
+                    </h5>
+
+                    <div v-if="upcomingMeetings.length === 0" class="text-center py-4 text-secondary">
+                        <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">예정된 미팅이 없습니다.</p>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="meeting in upcomingMeetings" :key="meeting.id" class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-bold mb-1">{{ meeting.memberName }}</div>
+                                    <div class="text-secondary small mb-1">
+                                        <i class="bi bi-calendar"></i> {{ meeting.date }} {{ meeting.time }}
+                                    </div>
+                                    <div class="text-secondary small">
+                                        <i class="bi bi-chat-dots"></i> {{ meeting.agenda }}
+                                    </div>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" @click="editMeeting(meeting.id)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" @click="cancelMeeting(meeting.id)">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meeting History -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clock-history text-success"></i> 미팅 이력
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">팀원</th>
+                                    <th class="border-0">일시</th>
+                                    <th class="border-0">안건</th>
+                                    <th class="border-0 text-center">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="meeting in meetingHistory" :key="meeting.id">
+                                    <td>{{ meeting.memberName }}</td>
+                                    <td>{{ meeting.date }}</td>
+                                    <td>{{ meeting.agenda }}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" @click="viewMeetingNotes(meeting.id)">
+                                            노트 보기
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Meeting Modal -->
+    <div v-if="showScheduleModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeScheduleModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">1:1 미팅 예약</h5>
+                    <button type="button" class="btn-close" @click="closeScheduleModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">팀원</label>
+                        <select class="form-select" v-model="scheduleForm.memberId">
+                            <option value="">선택하세요</option>
+                            <option v-for="member in teamMembers" :key="member.id" :value="member.id">
+                                {{ member.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">날짜</label>
+                        <input type="date" class="form-control" v-model="scheduleForm.date">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">시간</label>
+                        <input type="time" class="form-control" v-model="scheduleForm.time">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">안건</label>
+                        <textarea class="form-control" rows="3" v-model="scheduleForm.agenda"
+                                  placeholder="미팅 안건을 입력하세요"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeScheduleModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="scheduleMeeting">예약</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

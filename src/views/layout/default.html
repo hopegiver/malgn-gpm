@@ -183,7 +183,7 @@
                                 <span class="nav-label">회사 목표 보기</span>
                             </a>
                             <!-- 팀장 전용: 팀 목표 관리 -->
-                            <a v-if="isManager" href="#/goals/team-management" class="nav-link" :class="{ active: isActive('/goals/team-management') }" @click="closeSidebar">
+                            <a v-if="isManager" href="#/goals/team-goals" class="nav-link" :class="{ active: isActive('/goals/team-goals') }" @click="closeSidebar">
                                 <span class="nav-label">팀 목표 관리</span>
                             </a>
                         </div>
@@ -233,9 +233,6 @@
                             <a href="#/team/one-on-one" class="nav-link" :class="{ active: isActive('/team/one-on-one') }" @click="closeSidebar">
                                 <span class="nav-label">1:1 미팅</span>
                             </a>
-                            <a href="#/team/evaluation" class="nav-link" :class="{ active: isActive('/team/evaluation') }" @click="closeSidebar">
-                                <span class="nav-label">팀원 평가</span>
-                            </a>
                         </div>
                     </div>
 
@@ -276,6 +273,10 @@
                             </a>
                             <a href="#/review/history" class="nav-link" :class="{ active: isActive('/review/history') }" @click="closeSidebar">
                                 <span class="nav-label">평가 이력</span>
+                            </a>
+                            <!-- 팀장 전용: 팀원 평가 -->
+                            <a v-if="isManager" href="#/review/team-evaluation" class="nav-link" :class="{ active: isActive('/review/team-evaluation') }" @click="closeSidebar">
+                                <span class="nav-label">팀원 평가</span>
                             </a>
                         </div>
                     </div>

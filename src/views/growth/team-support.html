@@ -1,0 +1,162 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀원 성장 지원</h1>
+        <p class="page-subtitle">팀원들의 역량 개발과 성장을 지원하세요</p>
+    </div>
+
+    <!-- Support Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">진행 중 학습</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.ongoingLearning }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">건</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">완료한 학습</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.completedLearning }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">이번 분기</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 학습 시간</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.avgLearningHours }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">시간/월</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members Growth Status -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up-arrow text-primary"></i> 팀원별 성장 현황
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">팀원</th>
+                                    <th class="border-0 text-center">진행 중</th>
+                                    <th class="border-0 text-center">완료</th>
+                                    <th class="border-0 text-center">역량 점수</th>
+                                    <th class="border-0">중점 역량</th>
+                                    <th class="border-0 text-center">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="member in teamMembers" :key="member.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                 style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                                {{ member.initial }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ member.name }}</div>
+                                                <div class="small text-secondary">{{ member.position }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ member.ongoingCourses }}</td>
+                                    <td class="text-center">{{ member.completedCourses }}</td>
+                                    <td class="text-center">
+                                        <div class="fw-bold">{{ member.competencyScore }}</div>
+                                        <div class="progress mt-1" style="height: 4px;">
+                                            <div class="progress-bar bg-success" :style="{ width: member.competencyScore + '%' }"></div>
+                                        </div>
+                                    </td>
+                                    <td>{{ member.focusArea }}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" @click="viewMemberGrowth(member.id)">
+                                            상세 보기
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Courses -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb text-warning"></i> 추천 학습 과정
+                    </h5>
+
+                    <div class="row g-3">
+                        <div v-for="course in recommendedCourses" :key="course.id" class="col-12 col-md-6 col-xl-4">
+                            <div class="card border">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge" :class="'bg-' + course.categoryClass">{{ course.category }}</span>
+                                        <span class="small text-secondary">{{ course.duration }}</span>
+                                    </div>
+                                    <h6 class="fw-bold mb-2">{{ course.title }}</h6>
+                                    <p class="small text-secondary mb-2">{{ course.description }}</p>
+                                    <div class="small text-secondary mb-2">
+                                        <i class="bi bi-people"></i> {{ course.recommendedFor }}에게 추천
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary w-100" @click="recommendCourse(course.id)">
+                                        팀원에게 추천
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Growth Support Activities -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-calendar-check text-success"></i> 성장 지원 활동
+                    </h5>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button class="btn btn-primary">
+                            <i class="bi bi-book"></i> 학습 자료 공유
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="bi bi-people"></i> 스터디 그룹 생성
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="bi bi-trophy"></i> 역량 인증 관리
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3">최근 활동</h6>
+                        <div v-for="activity in recentActivities" :key="activity.id" class="border-start border-primary border-3 ps-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-medium small">{{ activity.title }}</div>
+                                    <div class="text-secondary small">{{ activity.description }}</div>
+                                </div>
+                                <div class="text-secondary small">{{ activity.date }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -71,6 +71,15 @@
                                     required
                                 >
                             </div>
+                            <div class="col-12">
+                                <textarea
+                                    class="form-control"
+                                    placeholder="상세 내역 (선택사항 - 업무의 세부 내용을 자유롭게 작성하세요)"
+                                    v-model="newTask.description"
+                                    rows="2"
+                                    style="font-size: 0.875rem;"
+                                ></textarea>
+                            </div>
                             <div class="col-md-3">
                                 <select class="form-select" v-model="newTask.goalId" @change="onGoalChange">
                                     <option value="">목표 선택 (선택)</option>
@@ -201,6 +210,13 @@
                                         </span>
                                     </div>
                                 </div>
+                                <button
+                                    class="btn btn-sm btn-outline-secondary ms-2"
+                                    @click="toggleTaskExpansion(task.id)"
+                                    title="상세 내역 보기"
+                                >
+                                    <i class="bi" :class="isTaskExpanded(task.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                </button>
                             </div>
 
                             <!-- Time Tracking -->
@@ -222,6 +238,63 @@
                             <!-- Completion Info -->
                             <div v-if="task.completed" class="mt-2 text-secondary" style="font-size: 0.875rem;">
                                 <i class="bi bi-check-circle-fill text-success"></i> {{ task.completedAt }}에 완료
+                            </div>
+
+                            <!-- Expanded Description Section -->
+                            <div v-if="isTaskExpanded(task.id)" class="mt-3 pt-3" style="border-top: 1px solid var(--gray-200);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0" style="font-size: 0.875rem;">
+                                        <i class="bi bi-file-text text-primary"></i> 상세 내역
+                                    </h6>
+                                    <button
+                                        v-if="!isEditingDescription(task.id) && !task.completed"
+                                        class="btn btn-sm btn-outline-primary"
+                                        @click="startEditDescription(task.id)"
+                                    >
+                                        <i class="bi bi-pencil"></i> 편집
+                                    </button>
+                                </div>
+
+                                <!-- View Mode -->
+                                <div v-if="!isEditingDescription(task.id)">
+                                    <div
+                                        v-if="task.description"
+                                        class="p-3 rounded"
+                                        style="background: var(--gray-50); white-space: pre-wrap; font-size: 0.875rem; line-height: 1.6;"
+                                    >{{ task.description }}</div>
+                                    <div
+                                        v-else
+                                        class="text-secondary text-center py-3"
+                                        style="font-size: 0.875rem;"
+                                    >
+                                        <i class="bi bi-inbox"></i> 작성된 상세 내역이 없습니다.
+                                    </div>
+                                </div>
+
+                                <!-- Edit Mode -->
+                                <div v-if="isEditingDescription(task.id)">
+                                    <textarea
+                                        class="form-control mb-2"
+                                        v-model="editingDescription[task.id]"
+                                        rows="5"
+                                        placeholder="업무의 세부 내용을 자유롭게 작성하세요&#10;- 할 일 목록&#10;- 주요 내용&#10;- 참고 사항 등"
+                                        style="font-size: 0.875rem;"
+                                    ></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button
+                                            class="btn btn-sm btn-primary"
+                                            @click="saveDescription(task.id)"
+                                        >
+                                            <i class="bi bi-check-circle"></i> 저장
+                                        </button>
+                                        <button
+                                            class="btn btn-sm btn-outline-secondary"
+                                            @click="cancelEditDescription(task.id)"
+                                        >
+                                            <i class="bi bi-x-circle"></i> 취소
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

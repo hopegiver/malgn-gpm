@@ -14,9 +14,12 @@ export default {
                 goalId: '',
                 krId: null,  // KR 선택 (선택적)
                 priority: 'Medium',
-                estimatedTime: 1
+                estimatedTime: 1,
+                description: ''  // 상세 내역 (선택적)
             },
             availableKRs: [],  // 선택한 목표의 KR 목록
+            expandedTasks: [],  // 확장된 업무 ID 목록
+            editingDescription: {},  // 편집 중인 상세 내역 {taskId: description}
             stats: {
                 plannedHours: 0,
                 executedHours: 0,
@@ -178,7 +181,8 @@ export default {
                         priority: 'High',
                         estimatedTime: 4,
                         actualTime: null,
-                        completed: false
+                        completed: false,
+                        description: '월간 리포트 생성 API 및 UI 개발\n- REST API 엔드포인트 구현\n- 데이터 집계 로직 작성\n- PDF 생성 기능 추가'
                     },
                     {
                         id: 2,
@@ -191,7 +195,8 @@ export default {
                         estimatedTime: 2,
                         actualTime: 1.5,
                         completed: true,
-                        completedAt: '14:30'
+                        completedAt: '14:30',
+                        description: '신규 입사자의 PR 3건 리뷰 완료\n- 코드 스타일 가이드 준수 확인\n- 로직 개선 제안 (성능 최적화)'
                     },
                     {
                         id: 3,
@@ -203,7 +208,8 @@ export default {
                         priority: 'High',
                         estimatedTime: 1,
                         actualTime: null,
-                        completed: false
+                        completed: false,
+                        description: ''
                     },
                     {
                         id: 4,
@@ -213,7 +219,8 @@ export default {
                         priority: 'Low',
                         estimatedTime: 3,
                         actualTime: null,
-                        completed: false
+                        completed: false,
+                        description: ''
                     },
                     {
                         id: 5,
@@ -224,7 +231,8 @@ export default {
                         estimatedTime: 1,
                         actualTime: 1,
                         completed: true,
-                        completedAt: '11:00'
+                        completedAt: '11:00',
+                        description: ''
                     }
                 ];
             }
@@ -239,7 +247,8 @@ export default {
                         priority: 'High',
                         estimatedTime: 4,
                         actualTime: 3.5,
-                        completed: false
+                        completed: false,
+                        description: ''
                     },
                     {
                         id: 102,
@@ -250,7 +259,8 @@ export default {
                         estimatedTime: 0.5,
                         actualTime: 0.5,
                         completed: true,
-                        completedAt: '09:30'
+                        completedAt: '09:30',
+                        description: ''
                     },
                     {
                         id: 103,
@@ -261,7 +271,8 @@ export default {
                         estimatedTime: 2,
                         actualTime: 2.5,
                         completed: true,
-                        completedAt: '16:00'
+                        completedAt: '16:00',
+                        description: ''
                     }
                 ];
             }
@@ -277,7 +288,8 @@ export default {
                         estimatedTime: 3,
                         actualTime: 3,
                         completed: true,
-                        completedAt: '15:00'
+                        completedAt: '15:00',
+                        description: ''
                     },
                     {
                         id: 202,
@@ -288,7 +300,8 @@ export default {
                         estimatedTime: 2,
                         actualTime: 2,
                         completed: true,
-                        completedAt: '17:00'
+                        completedAt: '17:00',
+                        description: ''
                     },
                     {
                         id: 203,
@@ -299,7 +312,8 @@ export default {
                         estimatedTime: 1.5,
                         actualTime: 1,
                         completed: true,
-                        completedAt: '11:00'
+                        completedAt: '11:00',
+                        description: ''
                     }
                 ];
             }
@@ -319,7 +333,8 @@ export default {
                         estimatedTime: 1 + (i % 4),
                         actualTime: isCompleted ? 1 + (i % 4) : null,
                         completed: isCompleted,
-                        completedAt: isCompleted ? '15:00' : null
+                        completedAt: isCompleted ? '15:00' : null,
+                        description: ''
                     });
                 }
 
@@ -385,7 +400,8 @@ export default {
                 priority: this.newTask.priority,
                 estimatedTime: this.newTask.estimatedTime,
                 actualTime: null,
-                completed: false
+                completed: false,
+                description: this.newTask.description || ''
             };
 
             this.tasks.unshift(task);
@@ -400,7 +416,8 @@ export default {
                 goalId: '',
                 krId: null,
                 priority: 'Medium',
-                estimatedTime: 1
+                estimatedTime: 1,
+                description: ''
             };
             this.availableKRs = [];
 
@@ -626,6 +643,52 @@ export default {
 
         formatDateKey(date) {
             return date.toISOString().split('T')[0];
+        },
+
+        // 업무 상세 확장/축소
+        toggleTaskExpansion(taskId) {
+            const index = this.expandedTasks.indexOf(taskId);
+            if (index > -1) {
+                this.expandedTasks.splice(index, 1);
+                // 축소할 때 편집 상태도 취소
+                delete this.editingDescription[taskId];
+            } else {
+                this.expandedTasks.push(taskId);
+            }
+        },
+
+        isTaskExpanded(taskId) {
+            return this.expandedTasks.includes(taskId);
+        },
+
+        // 상세 내역 편집
+        startEditDescription(taskId) {
+            const task = this.tasks.find(t => t.id === taskId);
+            if (task) {
+                this.editingDescription = {
+                    ...this.editingDescription,
+                    [taskId]: task.description || ''
+                };
+            }
+        },
+
+        saveDescription(taskId) {
+            const task = this.tasks.find(t => t.id === taskId);
+            if (task && this.editingDescription.hasOwnProperty(taskId)) {
+                task.description = this.editingDescription[taskId];
+                delete this.editingDescription[taskId];
+
+                // TODO: API 호출로 업데이트
+                // await this.$api.patch(`/api/tasks/${taskId}`, { description: task.description });
+            }
+        },
+
+        cancelEditDescription(taskId) {
+            delete this.editingDescription[taskId];
+        },
+
+        isEditingDescription(taskId) {
+            return this.editingDescription.hasOwnProperty(taskId);
         }
     }
 };

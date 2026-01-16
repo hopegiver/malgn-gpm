@@ -5,6 +5,33 @@
         <p class="page-subtitle">{{ teamName }} 팀의 실시간 업무 진행 상황을 모니터링하세요</p>
     </div>
 
+    <!-- Week Navigation -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button class="btn btn-outline-secondary" @click="previousWeek">
+                            <i class="bi bi-chevron-left"></i> 이전 주
+                        </button>
+                        <div class="text-center">
+                            <div class="fw-bold">{{ currentWeekDisplay }}</div>
+                            <div class="small text-secondary">{{ weekRangeDisplay }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" @click="goToToday">
+                                <i class="bi bi-calendar-today"></i> 오늘
+                            </button>
+                            <button class="btn btn-outline-secondary" @click="nextWeek" :disabled="isCurrentWeek">
+                                다음 주 <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Team Status Overview -->
     <div class="row g-4 mb-4">
         <div class="col-12 col-md-6 col-xl-3">

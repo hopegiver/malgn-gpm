@@ -3,6 +3,7 @@ export default {
     data() {
         return {
             teamName: '',
+            currentWeekStart: null, // 현재 선택된 주의 시작일 (월요일)
             stats: {
                 weeklyCompletion: 73,
                 weeklyTrend: 5,
@@ -17,6 +18,37 @@ export default {
             taskDistributionChart: null
         };
     },
+    computed: {
+        // 현재 주 표시 (예: "2024년 1월 3주차")
+        currentWeekDisplay() {
+            if (!this.currentWeekStart) return '';
+            const date = new Date(this.currentWeekStart);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const weekOfMonth = Math.ceil(date.getDate() / 7);
+            return `${year}년 ${month}월 ${weekOfMonth}주차`;
+        },
+        // 주간 날짜 범위 (예: "1/15 ~ 1/21")
+        weekRangeDisplay() {
+            if (!this.currentWeekStart) return '';
+            const start = new Date(this.currentWeekStart);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+
+            const formatDate = (date) => {
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            };
+
+            return `${formatDate(start)} ~ ${formatDate(end)}`;
+        },
+        // 현재 주인지 확인
+        isCurrentWeek() {
+            if (!this.currentWeekStart) return true;
+            const today = new Date();
+            const currentWeekStart = this.getWeekStart(today);
+            return this.currentWeekStart.getTime() === currentWeekStart.getTime();
+        }
+    },
     async mounted() {
         // 팀장 권한 체크
         const user = window.getCurrentUser();
@@ -27,6 +59,9 @@ export default {
             window.location.hash = '#/dashboard/employee';
             return;
         }
+
+        // 현재 주로 초기화
+        this.currentWeekStart = this.getWeekStart(new Date());
 
         // 팀 정보 로드
         this.loadTeamInfo();
@@ -50,6 +85,37 @@ export default {
         }
     },
     methods: {
+        // 주의 시작일(월요일) 계산
+        getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // 월요일로 조정
+            return new Date(d.setDate(diff));
+        },
+
+        // 이전 주로 이동
+        previousWeek() {
+            const newDate = new Date(this.currentWeekStart);
+            newDate.setDate(newDate.getDate() - 7);
+            this.currentWeekStart = newDate;
+            this.loadTeamStatusData();
+        },
+
+        // 다음 주로 이동
+        nextWeek() {
+            if (this.isCurrentWeek) return;
+            const newDate = new Date(this.currentWeekStart);
+            newDate.setDate(newDate.getDate() + 7);
+            this.currentWeekStart = newDate;
+            this.loadTeamStatusData();
+        },
+
+        // 오늘이 속한 주로 이동
+        goToToday() {
+            this.currentWeekStart = this.getWeekStart(new Date());
+            this.loadTeamStatusData();
+        },
+
         loadTeamInfo() {
             const user = window.getCurrentUser();
             if (user) {

@@ -12,7 +12,7 @@
         </button>
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-primary" @click="goToToday">
-                <i class="bi bi-calendar-day"></i> 오늘
+                <i class="bi bi-calendar-day"></i> {{ todayButtonText }}
             </button>
             <span v-if="!isToday" class="badge bg-warning text-dark">
                 <i class="bi bi-clock-history"></i> 과거 기록

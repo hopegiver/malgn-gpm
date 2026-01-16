@@ -63,6 +63,12 @@ export default {
             const day = nextDate.getDate();
             return `${month}월 ${day}일`;
         },
+        todayButtonText() {
+            if (!this.todayDate) return '오늘';
+            const month = this.todayDate.getMonth() + 1;
+            const day = this.todayDate.getDate();
+            return `오늘 (${month}월 ${day}일)`;
+        },
         filteredTasks() {
             let filtered = [];
             if (this.taskFilter === 'all') {

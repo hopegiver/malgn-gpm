@@ -96,6 +96,23 @@
                     </a>
                 </div>
             </div>
+
+            <!-- 환경설정 -->
+            <div class="nav-accordion">
+                <div class="accordion-header" :class="{ active: isAccordionOpen('settings') }" @click="toggleAccordion('settings')">
+                    <i class="bi bi-gear icon"></i>
+                    <span v-show="!sidebarIconMode">환경설정</span>
+                    <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
+                </div>
+                <div class="accordion-content" :class="{ open: isAccordionOpen('settings') }" v-show="!sidebarIconMode">
+                    <a href="#/settings/employees" class="nav-link" :class="{ active: isActive('/settings/employees') }">
+                        <span class="nav-label">직원 관리</span>
+                    </a>
+                    <a href="#/settings/organization" class="nav-link" :class="{ active: isActive('/settings/organization') }">
+                        <span class="nav-label">조직도</span>
+                    </a>
+                </div>
+            </div>
         </nav>
     </aside>
 

@@ -71,15 +71,23 @@
                                     required
                                 >
                             </div>
-                            <div class="col-md-4">
-                                <select class="form-select" v-model="newTask.goalId">
-                                    <option value="">연결할 목표 선택</option>
+                            <div class="col-md-3">
+                                <select class="form-select" v-model="newTask.goalId" @change="onGoalChange">
+                                    <option value="">목표 선택 (선택)</option>
                                     <option v-for="goal in goals" :key="goal.id" :value="goal.id">
                                         {{ goal.title }}
                                     </option>
                                 </select>
                             </div>
                             <div class="col-md-3">
+                                <select class="form-select" v-model="newTask.krId" :disabled="!newTask.goalId || availableKRs.length === 0">
+                                    <option :value="null">KR 선택 (선택)</option>
+                                    <option v-for="kr in availableKRs" :key="kr.id" :value="kr.id">
+                                        {{ kr.title }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <select class="form-select" v-model="newTask.priority">
                                     <option value="High">높음</option>
                                     <option value="Medium" selected>보통</option>
@@ -181,6 +189,9 @@
                                         </span>
                                         <span v-if="task.goalName" class="text-secondary" style="font-size: 0.875rem;">
                                             <i class="bi bi-bullseye"></i> {{ task.goalName }}
+                                        </span>
+                                        <span v-if="task.krName" class="badge bg-info text-white" style="font-size: 0.75rem;">
+                                            KR: {{ task.krName }}
                                         </span>
                                         <span class="text-secondary" style="font-size: 0.875rem;">
                                             <i class="bi bi-clock"></i> {{ task.estimatedTime }}h

@@ -1,0 +1,162 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">직원 관리</h1>
+        <p class="page-subtitle">직원 정보를 조회하고 관리하세요</p>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="이름, 이메일, 부서 검색..."
+                               v-model="searchQuery" @input="filterEmployees">
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <select class="form-select" v-model="filterDepartment" @change="filterEmployees">
+                        <option value="">전체 부서</option>
+                        <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <select class="form-select" v-model="filterRole" @change="filterEmployees">
+                        <option value="">전체 직급</option>
+                        <option value="CEO">CEO</option>
+                        <option value="임원">임원</option>
+                        <option value="부서장">부서장</option>
+                        <option value="팀장">팀장</option>
+                        <option value="직원">직원</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <button class="btn btn-primary w-100" @click="openAddEmployeeModal">
+                        <i class="bi bi-plus-circle"></i> 직원 추가
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">전체 직원</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ totalEmployees }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">재직 중</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ activeEmployees }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">이번 달 입사</div>
+                <div class="fw-bold text-info" style="font-size: 2rem;">{{ thisMonthJoined }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 근속</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ avgTenure }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">년</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee List -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-people text-primary"></i> 직원 목록
+                </h5>
+                <span class="text-secondary" style="font-size: 0.875rem;">
+                    {{ filteredEmployees.length }}명 표시 중
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr class="text-secondary" style="font-size: 0.875rem;">
+                            <th style="width: 50px;">#</th>
+                            <th>이름</th>
+                            <th>부서</th>
+                            <th>직급</th>
+                            <th>이메일</th>
+                            <th>입사일</th>
+                            <th>상태</th>
+                            <th style="width: 100px;" class="text-center">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(employee, index) in paginatedEmployees" :key="employee.id">
+                            <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                        {{ employee.name.charAt(0) }}
+                                    </div>
+                                    <span class="fw-medium">{{ employee.name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ employee.department }}</td>
+                            <td>
+                                <span class="badge" :class="getRoleBadgeClass(employee.role)">
+                                    {{ employee.role }}
+                                </span>
+                            </td>
+                            <td>{{ employee.email }}</td>
+                            <td>{{ formatDate(employee.joinDate) }}</td>
+                            <td>
+                                <span class="badge" :class="employee.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                                    {{ employee.status === 'active' ? '재직' : '퇴사' }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary me-1" @click="viewEmployee(employee.id)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" @click="editEmployee(employee.id)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-secondary" style="font-size: 0.875rem;">
+                    {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredEmployees.length) }} / {{ filteredEmployees.length }}
+                </div>
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                            <a class="page-link" @click.prevent="currentPage--" href="#">이전</a>
+                        </li>
+                        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+                            <a class="page-link" @click.prevent="currentPage = page" href="#">{{ page }}</a>
+                        </li>
+                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                            <a class="page-link" @click.prevent="currentPage++" href="#">다음</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>

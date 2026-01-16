@@ -88,6 +88,8 @@ export default {
                 this.openAccordions = ['growth'];
             } else if (path.startsWith('/review')) {
                 this.openAccordions = ['review'];
+            } else if (path.startsWith('/settings')) {
+                this.openAccordions = ['settings'];
             }
         },
         isActive(path) {

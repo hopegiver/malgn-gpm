@@ -1,0 +1,198 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">조직도</h1>
+        <p class="page-subtitle">회사 조직 구조를 확인하세요</p>
+    </div>
+
+    <!-- Organization Chart -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <div class="org-chart">
+                <!-- CEO -->
+                <div class="org-node root">
+                    <div class="org-card">
+                        <div class="org-avatar">김</div>
+                        <div class="org-info">
+                            <div class="org-name">김철수</div>
+                            <div class="org-role">CEO</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 1 - 부서장 -->
+                <div class="org-level">
+                    <div v-for="dept in departments" :key="dept.id" class="org-node">
+                        <div class="org-card">
+                            <div class="org-avatar" :style="{ backgroundColor: dept.color }">
+                                {{ dept.head.name.charAt(0) }}
+                            </div>
+                            <div class="org-info">
+                                <div class="org-name">{{ dept.head.name }}</div>
+                                <div class="org-role">{{ dept.name }} 부서장</div>
+                                <div class="org-count">{{ dept.totalMembers }}명</div>
+                            </div>
+                        </div>
+
+                        <!-- Level 2 - 팀장 -->
+                        <div v-if="dept.teams && dept.teams.length > 0" class="org-sublevel">
+                            <div v-for="team in dept.teams" :key="team.id" class="org-node small">
+                                <div class="org-card">
+                                    <div class="org-avatar small" :style="{ backgroundColor: dept.color }">
+                                        {{ team.leader.name.charAt(0) }}
+                                    </div>
+                                    <div class="org-info">
+                                        <div class="org-name">{{ team.leader.name }}</div>
+                                        <div class="org-role">{{ team.name }} 팀장</div>
+                                        <div class="org-count">{{ team.members.length }}명</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Details -->
+    <div class="row g-4 mt-4">
+        <div v-for="dept in departments" :key="dept.id" class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="org-avatar" :style="{ backgroundColor: dept.color, width: '48px', height: '48px' }">
+                            {{ dept.head.name.charAt(0) }}
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">{{ dept.name }}</h5>
+                            <div class="text-secondary" style="font-size: 0.875rem;">{{ dept.totalMembers }}명</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="fw-medium mb-2">부서장</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                {{ dept.head.name.charAt(0) }}
+                            </div>
+                            <div>
+                                <div style="font-size: 0.875rem;">{{ dept.head.name }}</div>
+                                <div class="text-secondary" style="font-size: 0.75rem;">{{ dept.head.email }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="dept.teams && dept.teams.length > 0">
+                        <div class="fw-medium mb-2">팀 구성</div>
+                        <div v-for="team in dept.teams" :key="team.id" class="mb-2">
+                            <div class="d-flex align-items-center gap-2 p-2 rounded" style="background: var(--gray-50);">
+                                <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                    {{ team.leader.name.charAt(0) }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div style="font-size: 0.875rem;">{{ team.name }}</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        {{ team.leader.name }} · {{ team.members.length }}명
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.org-chart {
+    padding: 2rem;
+    overflow-x: auto;
+}
+
+.org-node {
+    display: inline-block;
+    margin: 0 1rem;
+    vertical-align: top;
+}
+
+.org-node.root {
+    display: block;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.org-level {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.org-sublevel {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: center;
+}
+
+.org-card {
+    background: white;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    min-width: 200px;
+    text-align: center;
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+
+.org-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.org-node.small .org-card {
+    min-width: 150px;
+    padding: 0.75rem;
+}
+
+.org-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 auto 0.75rem;
+}
+
+.org-avatar.small {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+}
+
+.org-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.org-role {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.org-count {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+}
+</style>

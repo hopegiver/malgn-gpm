@@ -12,9 +12,11 @@ export default {
             newTask: {
                 title: '',
                 goalId: '',
+                krId: null,  // KR 선택 (선택적)
                 priority: 'Medium',
                 estimatedTime: 1
             },
+            availableKRs: [],  // 선택한 목표의 KR 목록
             stats: {
                 plannedHours: 0,
                 executedHours: 0,
@@ -104,10 +106,42 @@ export default {
         async loadGoals() {
             // TODO: 실제 API 호출로 대체
             this.goals = [
-                { id: 1, title: 'Q1 신규 기능 개발 완료' },
-                { id: 2, title: 'React 전문성 향상' },
-                { id: 3, title: '코드 품질 개선' },
-                { id: 4, title: '팀 협업 프로세스 개선' }
+                {
+                    id: 1,
+                    title: 'Q1 신규 기능 개발 완료',
+                    keyResults: [
+                        { id: 1, title: '대시보드 UI 컴포넌트 개발', metric: '100%' },
+                        { id: 2, title: '데이터 시각화 차트 구현', metric: '80%' },
+                        { id: 3, title: '리포트 생성 기능 개발', metric: '60%' },
+                        { id: 4, title: '성능 최적화 및 테스트', metric: '50%' }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: 'React 전문성 향상',
+                    keyResults: [
+                        { id: 1, title: 'React 고급 패턴 학습', metric: '완료' },
+                        { id: 2, title: 'TypeScript 프로젝트 적용', metric: '진행 중' },
+                        { id: 3, title: '성능 최적화 기법 적용', metric: '50%' }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: '코드 품질 개선',
+                    keyResults: [
+                        { id: 1, title: '코드 리뷰 품질 향상', metric: '완료' },
+                        { id: 2, title: '리팩토링 진행', metric: '80%' },
+                        { id: 3, title: '테스트 커버리지 향상', metric: '70%' }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: '팀 협업 프로세스 개선',
+                    keyResults: [
+                        { id: 1, title: '주간 회고 진행', metric: '완료' },
+                        { id: 2, title: '문서화 개선', metric: '60%' }
+                    ]
+                }
             ];
         },
 
@@ -139,6 +173,8 @@ export default {
                         title: '신규 기능 개발 완료',
                         goalId: 1,
                         goalName: 'Q1 신규 기능 개발 완료',
+                        krId: 3,
+                        krName: '리포트 생성 기능 개발',
                         priority: 'High',
                         estimatedTime: 4,
                         actualTime: null,
@@ -149,6 +185,8 @@ export default {
                         title: '코드 리뷰 완료',
                         goalId: 4,
                         goalName: '팀 협업 프로세스 개선',
+                        krId: 1,
+                        krName: '주간 회고 진행',
                         priority: 'Medium',
                         estimatedTime: 2,
                         actualTime: 1.5,
@@ -160,6 +198,8 @@ export default {
                         title: '주간 보고서 작성',
                         goalId: null,
                         goalName: null,
+                        krId: null,
+                        krName: null,
                         priority: 'High',
                         estimatedTime: 1,
                         actualTime: null,
@@ -313,16 +353,35 @@ export default {
                 .reduce((sum, t) => sum + t.actualTime, 0);
         },
 
+        onGoalChange() {
+            // 선택한 목표의 KR 목록 업데이트
+            if (this.newTask.goalId) {
+                const goal = this.goals.find(g => g.id === this.newTask.goalId);
+                this.availableKRs = goal ? goal.keyResults : [];
+            } else {
+                this.availableKRs = [];
+            }
+            // KR 선택 초기화
+            this.newTask.krId = null;
+        },
+
         addTask() {
             if (!this.newTask.title.trim()) return;
 
             const goal = this.goals.find(g => g.id === this.newTask.goalId);
+            let krName = null;
+            if (this.newTask.krId && goal) {
+                const kr = goal.keyResults.find(k => k.id === this.newTask.krId);
+                krName = kr ? kr.title : null;
+            }
 
             const task = {
                 id: Date.now(),
                 title: this.newTask.title,
                 goalId: this.newTask.goalId || null,
                 goalName: goal ? goal.title : null,
+                krId: this.newTask.krId || null,
+                krName: krName,
                 priority: this.newTask.priority,
                 estimatedTime: this.newTask.estimatedTime,
                 actualTime: null,
@@ -339,9 +398,11 @@ export default {
             this.newTask = {
                 title: '',
                 goalId: '',
+                krId: null,
                 priority: 'Medium',
                 estimatedTime: 1
             };
+            this.availableKRs = [];
 
             // 차트 업데이트
             this.updateGoalChart();

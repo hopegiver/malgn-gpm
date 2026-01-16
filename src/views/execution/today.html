@@ -204,8 +204,14 @@
                                             <span v-if="task.goalName" class="text-secondary" style="font-size: 0.875rem;">
                                                 <i class="bi bi-bullseye"></i> {{ task.goalName }}
                                             </span>
-                                            <span v-if="task.krName" class="badge bg-info text-white" style="font-size: 0.75rem;">
-                                                KR: {{ task.krName }}
+                                            <span
+                                                v-if="task.krName"
+                                                class="badge bg-info text-white"
+                                                style="font-size: 0.75rem; cursor: pointer;"
+                                                @click="promptEditKRProgress(task.goalId, task.krId, task.krName)"
+                                                :title="'클릭하여 진척율 수정'"
+                                            >
+                                                KR: {{ task.krName }} ({{ getKRProgress(task.krId) }}%)
                                             </span>
                                             <span v-if="task.estimatedTime > 0" class="text-secondary" style="font-size: 0.875rem;">
                                                 <i class="bi bi-clock"></i> {{ task.estimatedTime }}h

@@ -810,28 +810,37 @@ export default {
             }
         },
 
-        // KR 진척율 업데이트
-        updateKRProgress(goalId, krId) {
-            const goal = this.goals.find(g => g.id === goalId);
-            if (!goal) return;
+        // KR 진척율 프롬프트로 업데이트
+        promptEditKRProgress(goalId, krId, krName) {
+            const currentProgress = this.krProgress[krId] || 0;
+            const newProgress = prompt(`${krName}\n\n진척율을 입력하세요 (0-100):`, currentProgress);
 
-            const kr = goal.keyResults.find(k => k.id === krId);
-            if (!kr) return;
+            if (newProgress === null) return; // 취소
 
-            const newProgress = this.krProgress[krId];
-            if (newProgress === undefined || newProgress < 0 || newProgress > 100) {
-                alert('진척율은 0~100 사이의 값이어야 합니다.');
+            const progressNum = parseInt(newProgress, 10);
+            if (isNaN(progressNum) || progressNum < 0 || progressNum > 100) {
+                alert('진척율은 0~100 사이의 숫자여야 합니다.');
                 return;
             }
 
             // KR 진척율 업데이트
-            kr.progress = newProgress;
-            kr.metric = newProgress === 100 ? '완료' : `${newProgress}%`;
+            const goal = this.goals.find(g => g.id === goalId);
+            if (goal) {
+                const kr = goal.keyResults.find(k => k.id === krId);
+                if (kr) {
+                    kr.progress = progressNum;
+                    kr.metric = progressNum === 100 ? '완료' : `${progressNum}%`;
+                    this.krProgress[krId] = progressNum;
 
-            // TODO: API 호출로 업데이트
-            // await this.$api.patch(`/api/goals/${goalId}/keyResults/${krId}`, { progress: newProgress });
+                    // TODO: API 호출로 업데이트
+                    // await this.$api.patch(`/api/goals/${goalId}/keyResults/${krId}`, { progress: progressNum });
+                }
+            }
+        },
 
-            alert(`"${kr.title}" 진척율이 ${newProgress}%로 업데이트되었습니다.`);
+        // KR 진척율 조회
+        getKRProgress(krId) {
+            return this.krProgress[krId] || 0;
         }
     }
 };

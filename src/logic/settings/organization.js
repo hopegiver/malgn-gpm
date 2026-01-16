@@ -99,6 +99,159 @@ export default {
                     teams: []
                 }
             ];
+        },
+
+        // 부서 추가
+        openAddDeptModal() {
+            const name = prompt('부서 이름을 입력하세요:');
+            if (!name || !name.trim()) return;
+
+            const headName = prompt('부서장 이름을 입력하세요:');
+            if (!headName || !headName.trim()) return;
+
+            const headEmail = prompt('부서장 이메일을 입력하세요:');
+            if (!headEmail || !headEmail.trim()) return;
+
+            const colors = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#3b82f6'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            const newDept = {
+                id: Date.now(),
+                name: name.trim(),
+                color: color,
+                totalMembers: 1,
+                head: {
+                    name: headName.trim(),
+                    email: headEmail.trim()
+                },
+                teams: []
+            };
+
+            this.departments.push(newDept);
+
+            // TODO: API 호출로 저장
+            // await this.$api.post('/api/departments', newDept);
+            alert('부서가 추가되었습니다.');
+        },
+
+        // 부서 수정
+        editDepartment(deptId) {
+            const dept = this.departments.find(d => d.id === deptId);
+            if (!dept) return;
+
+            const name = prompt('부서 이름:', dept.name);
+            if (!name || !name.trim()) return;
+
+            const headName = prompt('부서장 이름:', dept.head.name);
+            if (!headName || !headName.trim()) return;
+
+            const headEmail = prompt('부서장 이메일:', dept.head.email);
+            if (!headEmail || !headEmail.trim()) return;
+
+            dept.name = name.trim();
+            dept.head.name = headName.trim();
+            dept.head.email = headEmail.trim();
+
+            // TODO: API 호출로 업데이트
+            // await this.$api.put(`/api/departments/${deptId}`, dept);
+            alert('부서 정보가 수정되었습니다.');
+        },
+
+        // 부서 삭제
+        deleteDepartment(deptId) {
+            const dept = this.departments.find(d => d.id === deptId);
+            if (!dept) return;
+
+            if (!confirm(`"${dept.name}" 부서를 정말 삭제하시겠습니까?\n하위 팀도 모두 삭제됩니다.`)) return;
+
+            const index = this.departments.findIndex(d => d.id === deptId);
+            if (index > -1) {
+                this.departments.splice(index, 1);
+
+                // TODO: API 호출로 삭제
+                // await this.$api.delete(`/api/departments/${deptId}`);
+                alert('부서가 삭제되었습니다.');
+            }
+        },
+
+        // 팀 추가
+        openAddTeamModal(deptId) {
+            const dept = this.departments.find(d => d.id === deptId);
+            if (!dept) return;
+
+            const name = prompt('팀 이름을 입력하세요:');
+            if (!name || !name.trim()) return;
+
+            const leaderName = prompt('팀장 이름을 입력하세요:');
+            if (!leaderName || !leaderName.trim()) return;
+
+            const leaderEmail = prompt('팀장 이메일을 입력하세요:');
+            if (!leaderEmail || !leaderEmail.trim()) return;
+
+            const newTeam = {
+                id: Date.now(),
+                name: name.trim(),
+                leader: {
+                    name: leaderName.trim(),
+                    email: leaderEmail.trim()
+                },
+                members: []
+            };
+
+            dept.teams.push(newTeam);
+            dept.totalMembers += 1;
+
+            // TODO: API 호출로 저장
+            // await this.$api.post(`/api/departments/${deptId}/teams`, newTeam);
+            alert('팀이 추가되었습니다.');
+        },
+
+        // 팀 수정
+        editTeam(deptId, teamId) {
+            const dept = this.departments.find(d => d.id === deptId);
+            if (!dept) return;
+
+            const team = dept.teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            const name = prompt('팀 이름:', team.name);
+            if (!name || !name.trim()) return;
+
+            const leaderName = prompt('팀장 이름:', team.leader.name);
+            if (!leaderName || !leaderName.trim()) return;
+
+            const leaderEmail = prompt('팀장 이메일:', team.leader.email);
+            if (!leaderEmail || !leaderEmail.trim()) return;
+
+            team.name = name.trim();
+            team.leader.name = leaderName.trim();
+            team.leader.email = leaderEmail.trim();
+
+            // TODO: API 호출로 업데이트
+            // await this.$api.put(`/api/departments/${deptId}/teams/${teamId}`, team);
+            alert('팀 정보가 수정되었습니다.');
+        },
+
+        // 팀 삭제
+        deleteTeam(deptId, teamId) {
+            const dept = this.departments.find(d => d.id === deptId);
+            if (!dept) return;
+
+            const team = dept.teams.find(t => t.id === teamId);
+            if (!team) return;
+
+            if (!confirm(`"${team.name}" 팀을 정말 삭제하시겠습니까?`)) return;
+
+            const index = dept.teams.findIndex(t => t.id === teamId);
+            if (index > -1) {
+                const memberCount = team.members.length + 1; // 팀장 포함
+                dept.teams.splice(index, 1);
+                dept.totalMembers -= memberCount;
+
+                // TODO: API 호출로 삭제
+                // await this.$api.delete(`/api/departments/${deptId}/teams/${teamId}`);
+                alert('팀이 삭제되었습니다.');
+            }
         }
     }
 };

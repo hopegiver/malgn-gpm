@@ -1,75 +1,47 @@
 <div>
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">조직도</h1>
-        <p class="page-subtitle">회사 조직 구조를 확인하세요</p>
-    </div>
-
-    <!-- Organization Chart -->
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-body p-4">
-            <div class="org-chart">
-                <!-- CEO -->
-                <div class="org-node root">
-                    <div class="org-card">
-                        <div class="org-avatar">김</div>
-                        <div class="org-info">
-                            <div class="org-name">김철수</div>
-                            <div class="org-role">CEO</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Level 1 - 부서장 -->
-                <div class="org-level">
-                    <div v-for="dept in departments" :key="dept.id" class="org-node">
-                        <div class="org-card">
-                            <div class="org-avatar" :style="{ backgroundColor: dept.color }">
-                                {{ dept.head.name.charAt(0) }}
-                            </div>
-                            <div class="org-info">
-                                <div class="org-name">{{ dept.head.name }}</div>
-                                <div class="org-role">{{ dept.name }} 부서장</div>
-                                <div class="org-count">{{ dept.totalMembers }}명</div>
-                            </div>
-                        </div>
-
-                        <!-- Level 2 - 팀장 -->
-                        <div v-if="dept.teams && dept.teams.length > 0" class="org-sublevel">
-                            <div v-for="team in dept.teams" :key="team.id" class="org-node small">
-                                <div class="org-card">
-                                    <div class="org-avatar small" :style="{ backgroundColor: dept.color }">
-                                        {{ team.leader.name.charAt(0) }}
-                                    </div>
-                                    <div class="org-info">
-                                        <div class="org-name">{{ team.leader.name }}</div>
-                                        <div class="org-role">{{ team.name }} 팀장</div>
-                                        <div class="org-count">{{ team.members.length }}명</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="page-title">조직도 관리</h1>
+                <p class="page-subtitle">부서 및 팀 구조를 관리하세요</p>
             </div>
+            <button class="btn btn-primary" @click="openAddDeptModal" style="white-space: nowrap;">
+                <i class="bi bi-plus-circle"></i> 부서 추가
+            </button>
         </div>
     </div>
 
-    <!-- Department Details -->
-    <div class="row g-4 mt-4">
+    <!-- Department Management -->
+    <div class="row g-4">
         <div v-for="dept in departments" :key="dept.id" class="col-12 col-md-6 col-lg-4">
             <div class="card border-0 shadow-sm rounded-3 h-100">
                 <div class="card-body p-4">
-                    <div class="d-flex align-items-center gap-3 mb-3">
+                    <!-- Department Header -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
                         <div class="org-avatar" :style="{ backgroundColor: dept.color, width: '48px', height: '48px' }">
                             {{ dept.head.name.charAt(0) }}
                         </div>
-                        <div>
+                        <div class="flex-grow-1">
                             <h5 class="fw-bold mb-1">{{ dept.name }}</h5>
                             <div class="text-secondary" style="font-size: 0.875rem;">{{ dept.totalMembers }}명</div>
                         </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" @click="editDepartment(dept.id)">
+                                    <i class="bi bi-pencil"></i> 수정
+                                </a></li>
+                                <li><a class="dropdown-item text-danger" @click="deleteDepartment(dept.id)">
+                                    <i class="bi bi-trash"></i> 삭제
+                                </a></li>
+                            </ul>
+                        </div>
                     </div>
 
+                    <!-- Department Head -->
                     <div class="mb-3">
                         <div class="fw-medium mb-2">부서장</div>
                         <div class="d-flex align-items-center gap-2">
@@ -83,20 +55,45 @@
                         </div>
                     </div>
 
-                    <div v-if="dept.teams && dept.teams.length > 0">
-                        <div class="fw-medium mb-2">팀 구성</div>
-                        <div v-for="team in dept.teams" :key="team.id" class="mb-2">
-                            <div class="d-flex align-items-center gap-2 p-2 rounded" style="background: var(--gray-50);">
-                                <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">
-                                    {{ team.leader.name.charAt(0) }}
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div style="font-size: 0.875rem;">{{ team.name }}</div>
-                                    <div class="text-secondary" style="font-size: 0.75rem;">
-                                        {{ team.leader.name }} · {{ team.members.length }}명
+                    <!-- Teams -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-medium">팀 구성</div>
+                            <button class="btn btn-sm btn-outline-primary" @click="openAddTeamModal(dept.id)">
+                                <i class="bi bi-plus"></i> 팀 추가
+                            </button>
+                        </div>
+
+                        <div v-if="dept.teams && dept.teams.length > 0">
+                            <div v-for="team in dept.teams" :key="team.id" class="mb-2">
+                                <div class="d-flex align-items-center gap-2 p-2 rounded" style="background: var(--gray-50);">
+                                    <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                        {{ team.leader.name.charAt(0) }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div style="font-size: 0.875rem;">{{ team.name }}</div>
+                                        <div class="text-secondary" style="font-size: 0.75rem;">
+                                            {{ team.leader.name }} · {{ team.members.length }}명
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" @click="editTeam(dept.id, team.id)">
+                                                <i class="bi bi-pencil"></i> 수정
+                                            </a></li>
+                                            <li><a class="dropdown-item text-danger" @click="deleteTeam(dept.id, team.id)">
+                                                <i class="bi bi-trash"></i> 삭제
+                                            </a></li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div v-else class="text-secondary text-center py-3" style="font-size: 0.875rem;">
+                            팀이 없습니다
                         </div>
                     </div>
                 </div>

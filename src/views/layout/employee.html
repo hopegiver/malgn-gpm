@@ -41,6 +41,31 @@
                     <div class="user-role">{{ userRole }}</div>
                 </div>
                 <i class="bi bi-chevron-down" style="color: var(--gray-500);"></i>
+
+                <!-- 드롭다운 메뉴 -->
+                <div class="user-dropdown" v-show="showUserMenu">
+                    <div class="user-dropdown-header">
+                        <div class="user-dropdown-avatar">{{ userInitial }}</div>
+                        <div>
+                            <div class="user-dropdown-name">{{ userName }}</div>
+                            <div class="user-dropdown-role">{{ userRole }}</div>
+                        </div>
+                    </div>
+                    <div class="user-dropdown-divider"></div>
+                    <a href="#/profile" class="user-dropdown-item" @click.stop="goToProfile">
+                        <i class="bi bi-person"></i>
+                        <span>내 프로필</span>
+                    </a>
+                    <a href="#/settings/my-settings" class="user-dropdown-item" @click.stop="goToSettings">
+                        <i class="bi bi-gear"></i>
+                        <span>설정</span>
+                    </a>
+                    <div class="user-dropdown-divider"></div>
+                    <button class="user-dropdown-item text-danger" @click.stop="handleLogout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>로그아웃</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>

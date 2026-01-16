@@ -25,7 +25,8 @@ export default {
             feedbackCount: 2,
             userName: '',
             userRole: '',
-            userInitial: ''
+            userInitial: '',
+            showUserMenu: false
         };
     },
     computed: {
@@ -50,10 +51,14 @@ export default {
 
         // 라우트 변경 시 아코디언 자동 업데이트
         window.addEventListener('hashchange', this.openCurrentAccordion);
+
+        // 외부 클릭 시 메뉴 닫기
+        document.addEventListener('click', this.handleClickOutside);
     },
     beforeUnmount() {
         window.removeEventListener('resize', this.checkScreenSize);
         window.removeEventListener('hashchange', this.openCurrentAccordion);
+        document.removeEventListener('click', this.handleClickOutside);
     },
     methods: {
         loadUserInfo() {
@@ -129,9 +134,37 @@ export default {
         goToFeedback() {
             window.location.hash = '#/growth/my-map';
         },
-        toggleUserMenu() {
-            console.log('사용자 메뉴 토글');
-            // TODO: 사용자 메뉴 표시/숨기기 (로그아웃, 설정 등)
+        toggleUserMenu(event) {
+            event.stopPropagation();
+            this.showUserMenu = !this.showUserMenu;
+        },
+        handleClickOutside(event) {
+            const userMenuElement = event.target.closest('.user-menu');
+            if (!userMenuElement && this.showUserMenu) {
+                this.showUserMenu = false;
+            }
+        },
+        goToProfile() {
+            this.showUserMenu = false;
+            window.location.hash = '#/profile';
+        },
+        goToSettings() {
+            this.showUserMenu = false;
+            window.location.hash = '#/settings/my-settings';
+        },
+        handleLogout() {
+            this.showUserMenu = false;
+            if (confirm('로그아웃 하시겠습니까?')) {
+                // TODO: 실제 로그아웃 API 호출
+                // await this.$api.post('/api/auth/logout');
+
+                // 세션 정리
+                window.sessionStorage.clear();
+                window.localStorage.removeItem('auth_token');
+
+                // 로그인 페이지로 이동
+                window.location.href = '/login.html';
+            }
         }
     }
 };

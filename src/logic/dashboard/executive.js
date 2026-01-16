@@ -34,6 +34,25 @@ export default {
         };
     },
     async mounted() {
+        // 역할에 따른 접근 권한 체크
+        const user = window.getCurrentUser();
+        if (user) {
+            // 임원이 아닌 경우 적절한 대시보드로 리다이렉트
+            if (!window.isExecutive() &&
+                (!user.roles || (!user.roles.includes(window.ROLES.CEO) &&
+                                 !user.roles.includes(window.ROLES.EXECUTIVE)))) {
+                // 관리자인 경우 관리자 대시보드로
+                if (user.roles && (user.roles.includes(window.ROLES.DEPT_HEAD) ||
+                                   user.roles.includes(window.ROLES.TEAM_LEADER))) {
+                    window.location.hash = '#/dashboard/manager';
+                } else {
+                    // 그 외 직원 대시보드로
+                    window.location.hash = '#/dashboard/employee';
+                }
+                return;
+            }
+        }
+
         // 데이터 로드
         await this.loadExecutiveDashboardData();
 

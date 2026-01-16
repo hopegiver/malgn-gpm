@@ -41,6 +41,27 @@ export default {
             return window.hasRole(window.ROLES.HR) ||
                    window.hasRole(window.ROLES.STRATEGY) ||
                    window.isExecutive();
+        },
+        // 역할별 대시보드 URL
+        dashboardUrl() {
+            const user = window.getCurrentUser();
+            if (!user) return '#/dashboard/employee';
+
+            // 임원 (CEO, Executive)
+            if (window.isExecutive() ||
+                (user.roles && (user.roles.includes(window.ROLES.CEO) ||
+                                user.roles.includes(window.ROLES.EXECUTIVE)))) {
+                return '#/dashboard/executive';
+            }
+
+            // 관리자 (부서장, 팀장)
+            if (user.roles && (user.roles.includes(window.ROLES.DEPT_HEAD) ||
+                               user.roles.includes(window.ROLES.TEAM_LEADER))) {
+                return '#/dashboard/manager';
+            }
+
+            // 일반 직원
+            return '#/dashboard/employee';
         }
     },
     mounted() {

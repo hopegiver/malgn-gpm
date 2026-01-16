@@ -21,6 +21,25 @@ export default {
         };
     },
     async mounted() {
+        // 역할에 따른 접근 권한 체크
+        const user = window.getCurrentUser();
+        if (user) {
+            // 임원인 경우 임원 대시보드로 리다이렉트
+            if (window.isExecutive() ||
+                (user.roles && (user.roles.includes(window.ROLES.CEO) ||
+                                user.roles.includes(window.ROLES.EXECUTIVE)))) {
+                window.location.hash = '#/dashboard/executive';
+                return;
+            }
+
+            // 관리자가 아닌 경우 직원 대시보드로 리다이렉트
+            if (!user.roles || (!user.roles.includes(window.ROLES.DEPT_HEAD) &&
+                                !user.roles.includes(window.ROLES.TEAM_LEADER))) {
+                window.location.hash = '#/dashboard/employee';
+                return;
+            }
+        }
+
         // 팀 정보 로드
         this.loadTeamInfo();
 

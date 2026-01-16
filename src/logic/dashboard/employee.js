@@ -22,6 +22,25 @@ export default {
         };
     },
     async mounted() {
+        // 역할에 따른 대시보드 리다이렉트
+        const user = window.getCurrentUser();
+        if (user) {
+            // 임원인 경우 임원 대시보드로 리다이렉트
+            if (window.isExecutive() ||
+                (user.roles && (user.roles.includes(window.ROLES.CEO) ||
+                                user.roles.includes(window.ROLES.EXECUTIVE)))) {
+                window.location.hash = '#/dashboard/executive';
+                return;
+            }
+
+            // 관리자인 경우 관리자 대시보드로 리다이렉트
+            if (user.roles && (user.roles.includes(window.ROLES.DEPT_HEAD) ||
+                               user.roles.includes(window.ROLES.TEAM_LEADER))) {
+                window.location.hash = '#/dashboard/manager';
+                return;
+            }
+        }
+
         // 사용자 정보 로드
         this.loadUserInfo();
 

@@ -80,7 +80,7 @@
             <nav class="sidebar-nav">
                 <!-- 대시보드 -->
                 <div class="nav-item">
-                    <a href="#/dashboard/employee" class="nav-link" :class="{ active: isActive('/dashboard/employee') }" @click="closeSidebar">
+                    <a :href="dashboardUrl" class="nav-link" :class="{ active: isActive(dashboardUrl.substring(1)) }" @click="closeSidebar">
                         <i class="bi bi-house-door"></i>
                         <span class="nav-label" v-show="!sidebarIconMode">대시보드</span>
                     </a>

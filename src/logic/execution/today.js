@@ -22,6 +22,7 @@ export default {
             editingTaskId: null,  // 편집 중인 업무 ID
             editingTask: {},  // 편집 중인 업무 데이터
             editingAvailableKRs: [],  // 편집 중 선택한 목표의 KR 목록
+            krProgress: {},  // KR별 진척율 {krId: progress}
             stats: {
                 plannedHours: 0,
                 executedHours: 0,
@@ -115,39 +116,46 @@ export default {
                     id: 1,
                     title: 'Q1 신규 기능 개발 완료',
                     keyResults: [
-                        { id: 1, title: '대시보드 UI 컴포넌트 개발', metric: '100%' },
-                        { id: 2, title: '데이터 시각화 차트 구현', metric: '80%' },
-                        { id: 3, title: '리포트 생성 기능 개발', metric: '60%' },
-                        { id: 4, title: '성능 최적화 및 테스트', metric: '50%' }
+                        { id: 1, title: '대시보드 UI 컴포넌트 개발', metric: '100%', progress: 100 },
+                        { id: 2, title: '데이터 시각화 차트 구현', metric: '80%', progress: 80 },
+                        { id: 3, title: '리포트 생성 기능 개발', metric: '60%', progress: 60 },
+                        { id: 4, title: '성능 최적화 및 테스트', metric: '50%', progress: 50 }
                     ]
                 },
                 {
                     id: 2,
                     title: 'React 전문성 향상',
                     keyResults: [
-                        { id: 1, title: 'React 고급 패턴 학습', metric: '완료' },
-                        { id: 2, title: 'TypeScript 프로젝트 적용', metric: '진행 중' },
-                        { id: 3, title: '성능 최적화 기법 적용', metric: '50%' }
+                        { id: 1, title: 'React 고급 패턴 학습', metric: '완료', progress: 100 },
+                        { id: 2, title: 'TypeScript 프로젝트 적용', metric: '진행 중', progress: 50 },
+                        { id: 3, title: '성능 최적화 기법 적용', metric: '50%', progress: 50 }
                     ]
                 },
                 {
                     id: 3,
                     title: '코드 품질 개선',
                     keyResults: [
-                        { id: 1, title: '코드 리뷰 품질 향상', metric: '완료' },
-                        { id: 2, title: '리팩토링 진행', metric: '80%' },
-                        { id: 3, title: '테스트 커버리지 향상', metric: '70%' }
+                        { id: 1, title: '코드 리뷰 품질 향상', metric: '완료', progress: 100 },
+                        { id: 2, title: '리팩토링 진행', metric: '80%', progress: 80 },
+                        { id: 3, title: '테스트 커버리지 향상', metric: '70%', progress: 70 }
                     ]
                 },
                 {
                     id: 4,
                     title: '팀 협업 프로세스 개선',
                     keyResults: [
-                        { id: 1, title: '주간 회고 진행', metric: '완료' },
-                        { id: 2, title: '문서화 개선', metric: '60%' }
+                        { id: 1, title: '주간 회고 진행', metric: '완료', progress: 100 },
+                        { id: 2, title: '문서화 개선', metric: '60%', progress: 60 }
                     ]
                 }
             ];
+
+            // KR 진척율 초기화
+            this.goals.forEach(goal => {
+                goal.keyResults.forEach(kr => {
+                    this.krProgress[kr.id] = kr.progress;
+                });
+            });
         },
 
         async loadTasks() {
@@ -380,6 +388,19 @@ export default {
             }
             // KR 선택 초기화
             this.newTask.krId = null;
+        },
+
+        onKRChange() {
+            // 업무명이 비어있을 때만 KR 제목을 자동으로 채움
+            if (!this.newTask.title.trim() && this.newTask.krId) {
+                const goal = this.goals.find(g => g.id === this.newTask.goalId);
+                if (goal) {
+                    const kr = goal.keyResults.find(k => k.id === this.newTask.krId);
+                    if (kr) {
+                        this.newTask.title = kr.title;
+                    }
+                }
+            }
         },
 
         addTask() {
@@ -740,6 +761,30 @@ export default {
                 // await this.$api.patch(`/api/tasks/${taskId}`, { description: task.description });
                 alert('상세 내역이 저장되었습니다.');
             }
+        },
+
+        // KR 진척율 업데이트
+        updateKRProgress(goalId, krId) {
+            const goal = this.goals.find(g => g.id === goalId);
+            if (!goal) return;
+
+            const kr = goal.keyResults.find(k => k.id === krId);
+            if (!kr) return;
+
+            const newProgress = this.krProgress[krId];
+            if (newProgress === undefined || newProgress < 0 || newProgress > 100) {
+                alert('진척율은 0~100 사이의 값이어야 합니다.');
+                return;
+            }
+
+            // KR 진척율 업데이트
+            kr.progress = newProgress;
+            kr.metric = newProgress === 100 ? '완료' : `${newProgress}%`;
+
+            // TODO: API 호출로 업데이트
+            // await this.$api.patch(`/api/goals/${goalId}/keyResults/${krId}`, { progress: newProgress });
+
+            alert(`"${kr.title}" 진척율이 ${newProgress}%로 업데이트되었습니다.`);
         }
     }
 };

@@ -1265,6 +1265,69 @@ const router = new ViewLogicRouter({
 
 ---
 
+## UI/UX 가이드라인
+
+### 페이지 헤더 구조
+
+모든 페이지는 일관된 헤더 구조를 따라야 합니다.
+
+#### 1. 기본 페이지 헤더
+
+```html
+<div class="page-header">
+    <h1 class="page-title">페이지 제목</h1>
+    <p class="page-subtitle">페이지 설명</p>
+</div>
+```
+
+#### 2. 액션 버튼이 있는 페이지 헤더
+
+**주요 액션 버튼(추가, 생성 등)은 페이지 타이틀 오른쪽에 배치합니다.**
+
+```html
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="page-title">페이지 제목</h1>
+            <p class="page-subtitle">페이지 설명</p>
+        </div>
+        <button class="btn btn-primary" @click="handleAction" style="white-space: nowrap;">
+            <i class="bi bi-plus-circle"></i> 액션
+        </button>
+    </div>
+</div>
+```
+
+**적용 사례:**
+- 직원 관리 페이지: "직원 추가" 버튼을 타이틀 오른쪽에 배치
+- 오늘의 업무 페이지: 과거 기록 조회 시 "오늘로 바로가기" 버튼을 타이틀 오른쪽에 배치
+
+**규칙:**
+- 검색/필터는 별도 카드로 분리
+- 주요 액션(Create, Add 등)만 헤더 오른쪽 배치
+- 버튼에 `white-space: nowrap` 적용하여 텍스트 줄바꿈 방지
+- 반응형을 위해 Bootstrap의 `d-flex`, `justify-content-between`, `align-items-start` 사용
+
+#### 3. 조건부 버튼 표시
+
+특정 조건에서만 버튼을 표시할 때:
+
+```html
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h1 class="page-title">페이지 제목</h1>
+            <p class="page-subtitle">페이지 설명</p>
+        </div>
+        <button v-if="!isToday" class="btn btn-primary" @click="goToToday" style="white-space: nowrap;">
+            <i class="bi bi-calendar-check"></i> 오늘로 바로가기
+        </button>
+    </div>
+</div>
+```
+
+---
+
 ## 라이선스
 
 MIT License - 자유롭게 사용하세요!

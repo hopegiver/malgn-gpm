@@ -1,15 +1,22 @@
 <div>
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">직원 관리</h1>
-        <p class="page-subtitle">직원 정보를 조회하고 관리하세요</p>
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="page-title">직원 관리</h1>
+                <p class="page-subtitle">직원 정보를 조회하고 관리하세요</p>
+            </div>
+            <button class="btn btn-primary" @click="openAddEmployeeModal" style="white-space: nowrap;">
+                <i class="bi bi-plus-circle"></i> 직원 추가
+            </button>
+        </div>
     </div>
 
     <!-- Search and Filter -->
     <div class="card border-0 shadow-sm rounded-3 mb-4">
         <div class="card-body p-4">
             <div class="row g-3">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-5">
                     <div class="input-group">
                         <span class="input-group-text bg-white">
                             <i class="bi bi-search"></i>
@@ -24,7 +31,7 @@
                         <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-4">
                     <select class="form-select" v-model="filterRole" @change="filterEmployees">
                         <option value="">전체 직급</option>
                         <option value="CEO">CEO</option>
@@ -33,11 +40,6 @@
                         <option value="팀장">팀장</option>
                         <option value="직원">직원</option>
                     </select>
-                </div>
-                <div class="col-12 col-md-2">
-                    <button class="btn btn-primary w-100" @click="openAddEmployeeModal">
-                        <i class="bi bi-plus-circle"></i> 직원 추가
-                    </button>
                 </div>
             </div>
         </div>

@@ -42,6 +42,22 @@ export default {
                    window.hasRole(window.ROLES.STRATEGY) ||
                    window.isExecutive();
         },
+        // 관리자 (팀장, 부서장) 여부
+        isManager() {
+            const user = window.getCurrentUser();
+            return user && user.roles && (
+                user.roles.includes(window.ROLES.DEPT_HEAD) ||
+                user.roles.includes(window.ROLES.TEAM_LEADER)
+            );
+        },
+        // 임원 여부
+        isExecutiveUser() {
+            return window.isExecutive();
+        },
+        // 일반 직원 여부 (관리자도 아니고 임원도 아닌)
+        isEmployee() {
+            return !this.isManager && !this.isExecutiveUser;
+        },
         // 역할별 대시보드 URL
         dashboardUrl() {
             const user = window.getCurrentUser();

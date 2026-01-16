@@ -47,6 +47,22 @@ export default {
             const dayOfWeek = days[this.selectedDate.getDay()];
             return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
         },
+        previousDateText() {
+            if (!this.selectedDate) return '';
+            const prevDate = new Date(this.selectedDate);
+            prevDate.setDate(prevDate.getDate() - 1);
+            const month = prevDate.getMonth() + 1;
+            const day = prevDate.getDate();
+            return `${month}월 ${day}일`;
+        },
+        nextDateText() {
+            if (!this.selectedDate) return '';
+            const nextDate = new Date(this.selectedDate);
+            nextDate.setDate(nextDate.getDate() + 1);
+            const month = nextDate.getMonth() + 1;
+            const day = nextDate.getDate();
+            return `${month}월 ${day}일`;
+        },
         filteredTasks() {
             let filtered = [];
             if (this.taskFilter === 'all') {

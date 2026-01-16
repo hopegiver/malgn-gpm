@@ -8,7 +8,7 @@
     <!-- Date Navigation -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <button class="btn btn-outline-secondary" @click="previousDay">
-            <i class="bi bi-chevron-left"></i> 이전 날
+            <i class="bi bi-chevron-left"></i> {{ previousDateText }}
         </button>
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-primary" @click="goToToday">
@@ -19,7 +19,7 @@
             </span>
         </div>
         <button class="btn btn-outline-secondary" @click="nextDay" :disabled="isToday">
-            다음 날 <i class="bi bi-chevron-right"></i>
+            {{ nextDateText }} <i class="bi bi-chevron-right"></i>
         </button>
     </div>
 

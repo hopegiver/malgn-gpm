@@ -1,5 +1,5 @@
 export default {
-    layout: 'employee',
+    layout: 'default',
     data() {
         return {
             currentYear: new Date().getFullYear(),

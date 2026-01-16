@@ -1,0 +1,253 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">진단 관리</h1>
+        <p class="page-subtitle">역량 진단 카테고리 및 질문을 관리하고 전사 진단 현황을 확인하세요</p>
+    </div>
+
+    <!-- Overall Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">전체 카테고리</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.totalCategories }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">개</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">전체 질문</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.totalQuestions }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">개</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">이번 달 진단 완료</div>
+                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.monthlyCompleted }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">건</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 완료율</div>
+                <div class="fw-bold text-info" style="font-size: 2.5rem;">{{ stats.avgCompletionRate }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">전체 직원 기준</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Management -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-folder text-primary"></i> 진단 카테고리
+                        </h5>
+                        <button class="btn btn-primary" @click="openAddCategoryModal">
+                            <i class="bi bi-plus-circle"></i> 카테고리 추가
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0" style="width: 60px;">색상</th>
+                                    <th class="border-0">카테고리명</th>
+                                    <th class="border-0">설명</th>
+                                    <th class="border-0 text-center">질문 수</th>
+                                    <th class="border-0 text-center">활성</th>
+                                    <th class="border-0 text-center">완료 수</th>
+                                    <th class="border-0 text-center">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="category in categories" :key="category.id">
+                                    <td>
+                                        <div class="rounded-circle"
+                                             :style="{ width: '32px', height: '32px', backgroundColor: category.color }"></div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i :class="category.icon" :style="{ color: category.color }"></i>
+                                            <span class="fw-medium">{{ category.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-secondary small">{{ category.description }}</td>
+                                    <td class="text-center">{{ category.questionCount }}</td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-flex justify-content-center">
+                                            <input class="form-check-input" type="checkbox"
+                                                   :checked="category.active"
+                                                   @change="toggleCategoryActive(category.id)">
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ category.completedCount }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                    @click="manageQuestions(category.id)" title="질문 관리">
+                                                <i class="bi bi-list-ul"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    @click="editCategory(category.id)" title="수정">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger"
+                                                    @click="deleteCategory(category.id)" title="삭제">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Statistics -->
+    <div class="row g-4">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up text-success"></i> 월별 진단 완료 추이
+                    </h5>
+                    <canvas ref="completionTrendChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-pie-chart text-warning"></i> 카테고리별 진단 비율
+                    </h5>
+                    <canvas ref="categoryDistributionChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Category Modal -->
+    <div v-if="showCategoryModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeCategoryModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ categoryForm.id ? '카테고리 수정' : '카테고리 추가' }}</h5>
+                    <button type="button" class="btn-close" @click="closeCategoryModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">카테고리명</label>
+                        <input type="text" class="form-control" v-model="categoryForm.name"
+                               placeholder="예: 기술 역량">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">설명</label>
+                        <textarea class="form-control" rows="2" v-model="categoryForm.description"
+                                  placeholder="카테고리에 대한 간단한 설명"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">아이콘</label>
+                            <select class="form-select" v-model="categoryForm.icon">
+                                <option value="bi bi-code-square">코드</option>
+                                <option value="bi bi-puzzle">퍼즐</option>
+                                <option value="bi bi-chat-dots">채팅</option>
+                                <option value="bi bi-people">사람들</option>
+                                <option value="bi bi-clock">시계</option>
+                                <option value="bi bi-lightbulb">전구</option>
+                                <option value="bi bi-gear">톱니바퀴</option>
+                                <option value="bi bi-book">책</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">색상</label>
+                            <input type="color" class="form-control form-control-color w-100"
+                                   v-model="categoryForm.color">
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="activeCheck"
+                               v-model="categoryForm.active">
+                        <label class="form-check-label" for="activeCheck">
+                            활성화 (직원들에게 표시)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeCategoryModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="saveCategory">
+                        {{ categoryForm.id ? '수정' : '추가' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Management Modal -->
+    <div v-if="showQuestionModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeQuestionModal">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">질문 관리 - {{ currentCategory?.name }}</h5>
+                    <button type="button" class="btn-close" @click="closeQuestionModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="text-secondary small">총 {{ questions.length }}개 질문</div>
+                        <button class="btn btn-sm btn-primary" @click="addQuestion">
+                            <i class="bi bi-plus"></i> 질문 추가
+                        </button>
+                    </div>
+
+                    <div v-if="questions.length === 0" class="text-center py-5 text-secondary">
+                        <i class="bi bi-question-circle" style="font-size: 3rem;"></i>
+                        <p class="mt-3">등록된 질문이 없습니다.</p>
+                        <button class="btn btn-primary" @click="addQuestion">
+                            첫 질문 추가하기
+                        </button>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="(question, index) in questions" :key="question.id"
+                             class="card border mb-3">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="badge bg-secondary">질문 {{ index + 1 }}</div>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" @click="editQuestion(question.id)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" @click="deleteQuestion(question.id)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="fw-medium mb-2">{{ question.text }}</div>
+                                <div class="small text-secondary">
+                                    응답 타입: {{ question.answerType === 'scale' ? '척도형 (1-5)' : '선택형' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeQuestionModal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

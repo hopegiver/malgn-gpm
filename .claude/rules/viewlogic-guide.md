@@ -18,7 +18,7 @@ src/
 
 ```javascript
 export default {
-    layout: 'employee',  // 또는 null (로그인 등)
+    layout: 'default',  // 또는 null (로그인 등)
 
     data() {
         return {

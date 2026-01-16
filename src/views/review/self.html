@@ -1,0 +1,240 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">자기평가</h1>
+        <p class="page-subtitle">목표 달성도와 역량을 스스로 평가하세요</p>
+    </div>
+
+    <!-- Evaluation Period Selection -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">평가 기간 선택</h5>
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <label class="form-label">평가 유형</label>
+                    <select class="form-select" v-model="evaluation.type" @change="onEvaluationTypeChange">
+                        <option value="quarterly">분기 평가</option>
+                        <option value="half-yearly">반기 평가</option>
+                        <option value="annual">연간 평가</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label">연도</label>
+                    <select class="form-select" v-model="evaluation.year" @change="loadEvaluationData">
+                        <option v-for="year in availableYears" :key="year" :value="year">{{ year }}년</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label">기간</label>
+                    <select class="form-select" v-model="evaluation.period" @change="loadEvaluationData">
+                        <option v-for="period in availablePeriods" :key="period.value" :value="period.value">
+                            {{ period.label }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div v-if="evaluation.status" class="alert mt-3 mb-0"
+                 :class="{
+                     'alert-success': evaluation.status === 'submitted',
+                     'alert-warning': evaluation.status === 'draft',
+                     'alert-info': evaluation.status === 'new'
+                 }">
+                <i class="bi" :class="{
+                    'bi-check-circle': evaluation.status === 'submitted',
+                    'bi-pencil': evaluation.status === 'draft',
+                    'bi-info-circle': evaluation.status === 'new'
+                }"></i>
+                <span v-if="evaluation.status === 'submitted'">
+                    이 평가는 {{ formatDate(evaluation.submittedAt) }}에 제출되었습니다.
+                </span>
+                <span v-else-if="evaluation.status === 'draft'">
+                    작성 중인 평가입니다. 저장된 날짜: {{ formatDate(evaluation.savedAt) }}
+                </span>
+                <span v-else>
+                    새로운 평가를 작성하세요.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Evaluation -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-bullseye text-primary"></i> 목표별 성과 평가
+                </h5>
+                <span class="text-secondary" style="font-size: 0.875rem;">
+                    평균 달성도: {{ averageGoalAchievement }}%
+                </span>
+            </div>
+
+            <div v-if="goalEvaluations.length === 0" class="text-center py-4 text-secondary">
+                해당 기간에 설정된 목표가 없습니다.
+            </div>
+
+            <div v-for="(goal, index) in goalEvaluations" :key="goal.goalId" class="mb-4">
+                <div class="card bg-light border-0">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ goal.goalTitle }}</h6>
+                                <p class="text-secondary mb-0" style="font-size: 0.875rem;">{{ goal.goalDescription }}</p>
+                            </div>
+                            <span class="badge bg-primary">목표 {{ index + 1 }}</span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-medium">달성도 (%)</label>
+                                <input type="range" class="form-range" v-model.number="goal.achievement"
+                                       min="0" max="100" step="5"
+                                       :disabled="evaluation.status === 'submitted'">
+                                <div class="text-center fw-bold text-primary" style="font-size: 1.5rem;">
+                                    {{ goal.achievement }}%
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-medium">자기평가 점수</label>
+                                <div class="d-flex gap-2">
+                                    <button v-for="score in [1, 2, 3, 4, 5]" :key="score"
+                                            class="btn flex-grow-1"
+                                            :class="goal.score === score ? 'btn-primary' : 'btn-outline-secondary'"
+                                            @click="goal.score = score"
+                                            :disabled="evaluation.status === 'submitted'">
+                                        {{ score }}
+                                    </button>
+                                </div>
+                                <div class="text-center text-secondary mt-2" style="font-size: 0.75rem;">
+                                    1: 미흡 / 3: 보통 / 5: 우수
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">주요 성과 및 활동</label>
+                                <textarea class="form-control" rows="3" v-model="goal.achievements"
+                                          placeholder="이 목표와 관련하여 달성한 주요 성과를 구체적으로 작성하세요"
+                                          :disabled="evaluation.status === 'submitted'"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-medium">어려웠던 점 및 개선 사항</label>
+                                <textarea class="form-control" rows="2" v-model="goal.challenges"
+                                          placeholder="목표 달성 과정에서 어려웠던 점이나 개선이 필요한 부분을 작성하세요"
+                                          :disabled="evaluation.status === 'submitted'"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competency Evaluation -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-star text-warning"></i> 역량별 자기평가
+                </h5>
+                <span class="text-secondary" style="font-size: 0.875rem;">
+                    평균 역량: {{ averageCompetencyScore }}/5.0
+                </span>
+            </div>
+
+            <div v-for="category in competencyEvaluations" :key="category.id" class="mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i :class="category.icon" :style="{ color: category.color, fontSize: '1.5rem' }"></i>
+                    <h6 class="fw-bold mb-0">{{ category.name }}</h6>
+                </div>
+
+                <div v-for="comp in category.competencies" :key="comp.id" class="mb-3 ps-4">
+                    <div class="card border-0" style="background: #f9fafb;">
+                        <div class="card-body p-3">
+                            <div class="mb-2">
+                                <div class="fw-medium">{{ comp.name }}</div>
+                                <div class="text-secondary" style="font-size: 0.875rem;">{{ comp.description }}</div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" style="font-size: 0.875rem;">현재 레벨</label>
+                                    <div class="d-flex gap-2">
+                                        <button v-for="level in [1, 2, 3, 4, 5]" :key="'comp-' + level"
+                                                class="btn btn-sm flex-grow-1"
+                                                :class="comp.currentLevel === level ? 'btn-primary' : 'btn-outline-secondary'"
+                                                @click="comp.currentLevel = level"
+                                                :disabled="evaluation.status === 'submitted'">
+                                            {{ level }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label" style="font-size: 0.875rem;">개선 활동 및 근거</label>
+                                    <textarea class="form-control form-control-sm" rows="2" v-model="comp.evidence"
+                                              placeholder="이 역량 레벨에 대한 근거나 개선을 위해 수행한 활동을 작성하세요"
+                                              :disabled="evaluation.status === 'submitted'"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overall Comments -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-chat-left-text text-success"></i> 종합 의견
+            </h5>
+
+            <div class="mb-3">
+                <label class="form-label fw-medium">이번 기간 주요 성취</label>
+                <textarea class="form-control" rows="4" v-model="evaluation.majorAchievements"
+                          placeholder="이번 평가 기간 동안 가장 자랑스러운 성취나 기여를 작성하세요"
+                          :disabled="evaluation.status === 'submitted'"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-medium">개선이 필요한 영역</label>
+                <textarea class="form-control" rows="4" v-model="evaluation.areasForImprovement"
+                          placeholder="앞으로 개선하고 싶은 부분이나 보완이 필요한 영역을 작성하세요"
+                          :disabled="evaluation.status === 'submitted'"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-medium">다음 기간 목표 및 계획</label>
+                <textarea class="form-control" rows="4" v-model="evaluation.nextPeriodPlan"
+                          placeholder="다음 평가 기간에 집중하고 싶은 목표나 계획을 작성하세요"
+                          :disabled="evaluation.status === 'submitted'"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-medium">회사/팀에 바라는 지원</label>
+                <textarea class="form-control" rows="3" v-model="evaluation.supportNeeded"
+                          placeholder="목표 달성이나 성장을 위해 회사나 팀에 필요한 지원이 있다면 작성하세요"
+                          :disabled="evaluation.status === 'submitted'"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex gap-2 justify-content-end mb-4">
+        <button v-if="evaluation.status !== 'submitted'" class="btn btn-outline-secondary"
+                @click="saveDraft">
+            <i class="bi bi-save"></i> 임시 저장
+        </button>
+        <button v-if="evaluation.status !== 'submitted'" class="btn btn-primary"
+                @click="submitEvaluation">
+            <i class="bi bi-send"></i> 제출
+        </button>
+        <button v-if="evaluation.status === 'submitted'" class="btn btn-secondary" disabled>
+            <i class="bi bi-check-circle"></i> 제출 완료
+        </button>
+    </div>
+</div>

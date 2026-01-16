@@ -1,0 +1,354 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">주간 보고서</h1>
+        <p class="page-subtitle">{{ currentWeekText }} - 주간 업무를 정리하고 보고서를 작성하세요</p>
+    </div>
+
+    <!-- Week Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-secondary" @click="previousWeek">
+            <i class="bi bi-chevron-left"></i> 이전 주
+        </button>
+        <button class="btn btn-primary" @click="goToCurrentWeek">
+            <i class="bi bi-calendar-week"></i> 이번 주
+        </button>
+        <button class="btn btn-outline-secondary" @click="nextWeek">
+            다음 주 <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Weekly Summary (Auto-generated) -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">총 업무</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ consolidatedTasks.length }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">완료</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ weeklyStats.completed }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">완료율</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ weeklyStats.completionRate }}%</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">총 투입 시간</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ weeklyStats.totalHours }}h</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Weekly Tasks & Report -->
+        <div class="col-12 col-lg-8">
+            <!-- Goal Progress -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-bullseye text-success"></i> 목표별 진척 현황
+                    </h5>
+                    <p class="text-secondary mb-3" style="font-size: 0.875rem;">
+                        이번 주 주요 성과입니다. 별도 작성이 필요하지 않습니다.
+                    </p>
+                    <div v-if="goalProgress.length > 0">
+                        <div v-for="goal in goalProgress" :key="goal.goalId" class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="fw-medium">{{ goal.goalName }}</div>
+                                <div>
+                                    <span class="badge" :class="goal.completionRate >= 70 ? 'bg-success' : goal.completionRate >= 40 ? 'bg-warning' : 'bg-danger'">
+                                        {{ goal.completed }}/{{ goal.total }} ({{ goal.completionRate }}%)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar"
+                                     :class="goal.completionRate >= 70 ? 'bg-success' : goal.completionRate >= 40 ? 'bg-warning' : 'bg-danger'"
+                                     :style="{ width: goal.completionRate + '%' }"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-3 text-secondary">
+                        이번 주 목표 연계 업무가 없습니다
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consolidated Tasks -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-list-check text-primary"></i> 주간 업무 목록
+                        </h5>
+                        <span class="text-secondary" style="font-size: 0.875rem;">
+                            우선순위 순 • 중복 통합
+                        </span>
+                    </div>
+
+                    <div v-if="consolidatedTasks.length > 0">
+                        <div v-for="task in consolidatedTasks" :key="task.id"
+                             class="card mb-2 p-3" :class="{ 'bg-light': task.allCompleted }">
+                            <div class="d-flex align-items-start gap-2">
+                                <input type="checkbox" class="form-check-input mt-1"
+                                       :checked="selectedTaskIds.includes(task.id)"
+                                       @change="toggleTaskSelection(task.id)"
+                                       :disabled="task.allCompleted">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i v-if="task.allCompleted" class="bi bi-check-circle-fill text-success"></i>
+                                        <i v-else-if="task.partialCompleted" class="bi bi-check-circle text-warning"></i>
+                                        <i v-else class="bi bi-circle text-secondary"></i>
+                                        <span class="fw-medium" style="font-size: 0.875rem;"
+                                              :class="{ 'text-decoration-line-through text-secondary': task.allCompleted }">
+                                            {{ task.title }}
+                                            <span v-if="task.count > 1" class="text-secondary">
+                                                ({{ task.count }}회)
+                                            </span>
+                                        </span>
+                                        <span v-if="task.priority === 'High'" class="badge bg-danger" style="font-size: 0.65rem;">높음</span>
+                                        <span v-else-if="task.priority === 'Medium'" class="badge bg-warning" style="font-size: 0.65rem;">보통</span>
+                                    </div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        <span v-if="task.goalName">
+                                            <i class="bi bi-bullseye"></i> {{ task.goalName }} •
+                                        </span>
+                                        <span v-if="task.count > 1">
+                                            완료 {{ task.completedCount }}/{{ task.count }} •
+                                        </span>
+                                        <i class="bi bi-clock"></i> {{ task.totalEstimatedTime }}h
+                                        <span v-if="task.totalActualTime">
+                                            → {{ task.totalActualTime }}h
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-3 text-secondary">
+                        이번 주 업무가 없습니다
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Form -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4" style="border-left: 4px solid var(--primary-color) !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-file-text text-primary"></i> 주간 보고서 작성
+                        </h5>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button v-if="report.status !== 'submitted'" class="btn btn-sm btn-outline-primary" @click="autoGenerateReport">
+                                <i class="bi bi-magic"></i> 자동 작성
+                            </button>
+                            <span v-if="report.status === 'submitted'" class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> 제출 완료
+                            </span>
+                            <span v-else class="badge bg-secondary">
+                                <i class="bi bi-pencil"></i> 작성 중
+                            </span>
+                        </div>
+                    </div>
+
+                    <form @submit.prevent="saveReport">
+                        <!-- Quick Actions -->
+                        <div v-if="report.status !== 'submitted' && selectedTaskIds.length > 0"
+                             class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                            <span>
+                                <i class="bi bi-info-circle"></i> {{ selectedTaskIds.length }}개 업무 선택됨
+                            </span>
+                            <button type="button" class="btn btn-sm btn-primary" @click="addSelectedToNextWeek">
+                                <i class="bi bi-arrow-right"></i> 다음 주 계획에 추가
+                            </button>
+                        </div>
+
+                        <!-- 이슈 및 어려웠던 점 -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-exclamation-triangle"></i> 이슈 및 어려웠던 점
+                            </label>
+                            <p class="text-secondary mb-2" style="font-size: 0.875rem;">
+                                미완료 {{ incompleteTasks.length }}개 업무 및 발생한 이슈를 작성하세요 (선택)
+                            </p>
+                            <textarea
+                                class="form-control"
+                                rows="4"
+                                v-model="report.issues"
+                                placeholder="예시:&#10;- API 연동 중 CORS 이슈 발생 → 백엔드팀 협업으로 해결&#10;- 테스트 환경 구축 지연 → 다음 주 우선 처리 예정&#10;&#10;※ 특별한 이슈가 없으면 비워두셔도 됩니다."
+                                :disabled="report.status === 'submitted'"
+                            ></textarea>
+                        </div>
+
+                        <!-- 다음 주 계획 -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-check"></i> 다음 주 계획
+                            </label>
+                            <p class="text-secondary mb-2" style="font-size: 0.875rem;">
+                                미완료 업무를 선택하거나 신규 계획을 작성하세요
+                            </p>
+
+                            <!-- 미완료 업무 선택 -->
+                            <div v-if="incompleteTasks.length > 0 && report.status !== 'submitted'" class="mb-3">
+                                <div class="card bg-light p-3">
+                                    <div class="fw-medium mb-2" style="font-size: 0.875rem;">
+                                        <i class="bi bi-arrow-return-right"></i> 이번 주 미완료 업무 ({{ incompleteTasks.length }}개)
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button v-for="task in incompleteTasks.slice(0, 5)" :key="task.id"
+                                                type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                @click="addTaskToNextWeek(task)">
+                                            <i class="bi bi-plus"></i> {{ task.title }}
+                                        </button>
+                                        <button v-if="incompleteTasks.length > 5"
+                                                type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                @click="addAllIncompleteToNextWeek">
+                                            <i class="bi bi-plus-circle"></i> 전체 추가 ({{ incompleteTasks.length }}개)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <textarea
+                                class="form-control"
+                                rows="5"
+                                v-model="report.nextWeekPlan"
+                                placeholder="예시:&#10;- 사용자 대시보드 UI 개발&#10;- API 문서화 작업&#10;- 단위 테스트 작성 (커버리지 80% 목표)&#10;&#10;위의 미완료 업무 버튼을 클릭하면 자동으로 추가됩니다."
+                                :disabled="report.status === 'submitted'"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <!-- 건의사항 -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-lightbulb"></i> 건의사항
+                            </label>
+                            <p class="text-secondary mb-2" style="font-size: 0.875rem;">
+                                팀이나 조직에 대한 건의사항 (선택)
+                            </p>
+                            <textarea
+                                class="form-control"
+                                rows="3"
+                                v-model="report.suggestions"
+                                placeholder="예시:&#10;- 코드 리뷰 시간 확보를 위한 업무 일정 조정 필요&#10;- 개발 환경 개선 요청"
+                                :disabled="report.status === 'submitted'"
+                            ></textarea>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <button v-if="report.status !== 'submitted'" type="button" class="btn btn-outline-primary" @click="saveDraft">
+                                <i class="bi bi-save"></i> 임시 저장
+                            </button>
+                            <button v-if="report.status !== 'submitted'" type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> 제출하기
+                            </button>
+                            <button v-if="report.status === 'submitted'" type="button" class="btn btn-outline-secondary" @click="editReport">
+                                <i class="bi bi-pencil"></i> 수정하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Summary & History -->
+        <div class="col-12 col-lg-4">
+            <!-- Weekly Summary -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clipboard-data text-primary"></i> 주간 요약
+                    </h5>
+
+                    <!-- Priority Distribution -->
+                    <div class="mb-3">
+                        <div class="text-secondary fw-medium mb-2" style="font-size: 0.875rem;">우선순위별 현황</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-danger">
+                                <i class="bi bi-exclamation-circle-fill"></i> 높음
+                            </span>
+                            <span class="fw-medium">{{ weeklyStats.highPriority }}개</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-warning">
+                                <i class="bi bi-circle-fill"></i> 보통
+                            </span>
+                            <span class="fw-medium">{{ weeklyStats.mediumPriority }}개</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary">
+                                <i class="bi bi-circle"></i> 낮음
+                            </span>
+                            <span class="fw-medium">{{ weeklyStats.lowPriority }}개</span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Time Statistics -->
+                    <div>
+                        <div class="text-secondary fw-medium mb-2" style="font-size: 0.875rem;">시간 투입</div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="font-size: 0.875rem;">예상 시간</span>
+                            <span class="fw-medium">{{ weeklyStats.estimatedHours }}h</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="font-size: 0.875rem;">실제 시간</span>
+                            <span class="fw-medium">{{ weeklyStats.actualHours }}h</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size: 0.875rem;">효율성</span>
+                            <span class="fw-medium" :class="weeklyStats.efficiency >= 100 ? 'text-success' : 'text-warning'">
+                                {{ weeklyStats.efficiency }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submission History -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clock-history text-success"></i> 제출 이력
+                    </h5>
+
+                    <div v-if="submissionHistory.length > 0">
+                        <div v-for="history in submissionHistory" :key="history.id"
+                             class="card mb-2 p-3" style="cursor: pointer;"
+                             @click="viewHistory(history)">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-medium mb-1" style="font-size: 0.875rem;">
+                                        {{ history.weekText }}
+                                    </div>
+                                    <small class="text-secondary">
+                                        <i class="bi bi-calendar"></i> {{ history.submittedAt }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-3 text-secondary" style="font-size: 0.875rem;">
+                        아직 제출한 보고서가 없습니다
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

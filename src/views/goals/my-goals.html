@@ -1,0 +1,683 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">나의 목표</h1>
+        <p class="page-subtitle">개인 MBO 목표를 관리하고 진행 상황을 확인하세요.</p>
+    </div>
+
+    <!-- Goal Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">전체 목표</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ goalStats.total }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">진행 중</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ goalStats.inProgress }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">완료</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ goalStats.completed }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">평균 달성률</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ goalStats.avgAchievement }}%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Goals List -->
+        <div class="col-12 col-lg-8">
+            <!-- Actions -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="btn-group">
+                    <button class="btn btn-sm" :class="{ 'btn-primary': filter === 'all', 'btn-outline-secondary': filter !== 'all' }" @click="filter = 'all'">
+                        전체 ({{ goals.length }})
+                    </button>
+                    <button class="btn btn-sm" :class="{ 'btn-primary': filter === 'inProgress', 'btn-outline-secondary': filter !== 'inProgress' }" @click="filter = 'inProgress'">
+                        진행 중 ({{ goalStats.inProgress }})
+                    </button>
+                    <button class="btn btn-sm" :class="{ 'btn-primary': filter === 'completed', 'btn-outline-secondary': filter !== 'completed' }" @click="filter = 'completed'">
+                        완료 ({{ goalStats.completed }})
+                    </button>
+                </div>
+                <button class="btn btn-primary" @click="openAddGoalModal">
+                    <i class="bi bi-plus-circle"></i> 새 목표 추가
+                </button>
+            </div>
+
+            <!-- Goals List -->
+            <div v-for="goal in filteredGoals" :key="goal.id" class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-4">
+                    <!-- Goal Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h5 class="fw-bold mb-0">{{ goal.title }}</h5>
+                                <span class="badge" :class="getStatusBadgeClass(goal.status)">
+                                    {{ getStatusText(goal.status) }}
+                                </span>
+                            </div>
+                            <p class="text-secondary mb-2" style="font-size: 0.875rem;">{{ goal.description }}</p>
+                            <div class="d-flex gap-3" style="font-size: 0.875rem;">
+                                <span class="text-secondary">
+                                    <i class="bi bi-calendar"></i> {{ goal.startDate }} ~ {{ goal.dueDate }}
+                                </span>
+                                <span class="text-secondary">
+                                    <i class="bi bi-layers"></i> {{ goal.category }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="signal-light" :class="getSignalClass(goal.achievement)">
+                                <i class="bi bi-circle-fill"></i>
+                                {{ goal.achievement }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Linked Team KPI -->
+                    <div v-if="goal.linkedTeamKPI" class="mb-3">
+                        <div class="card p-2 border-0" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe);">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-link-45deg text-primary"></i>
+                                <div style="font-size: 0.875rem;">
+                                    <div class="text-secondary" style="font-size: 0.75rem;">연결된 팀 KPI</div>
+                                    <div class="fw-medium text-primary">{{ goal.teamKPITitle }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-bar-container mb-3">
+                        <div class="progress-label">
+                            <span style="color: var(--gray-600);">달성률</span>
+                            <span style="color: var(--gray-900); font-weight: 600;">{{ goal.achievement }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" :class="getSignalClass(goal.achievement)" :style="{ width: goal.achievement + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <!-- Key Results -->
+                    <div class="mb-3">
+                        <div class="fw-medium mb-2" style="font-size: 0.875rem;">핵심 결과 (KR)</div>
+                        <div v-for="kr in goal.keyResults" :key="kr.id" class="d-flex align-items-center gap-2 mb-2">
+                            <input type="checkbox" class="form-check-input" :checked="kr.completed" @change="toggleKeyResult(goal.id, kr.id)">
+                            <span :class="{ 'text-decoration-line-through text-secondary': kr.completed }" style="font-size: 0.875rem;">
+                                {{ kr.title }}
+                            </span>
+                            <span class="ms-auto badge" :class="kr.completed ? 'success' : 'primary'" style="font-size: 0.75rem;">
+                                {{ kr.metric }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" @click="editGoal(goal.id)">
+                            <i class="bi bi-pencil"></i> 수정
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" @click="viewGoalDetail(goal.id)">
+                            <i class="bi bi-eye"></i> 상세
+                        </button>
+                        <button class="btn btn-sm btn-outline-success ms-auto" @click="updateProgress(goal.id)">
+                            <i class="bi bi-arrow-up-circle"></i> 진행 업데이트
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="filteredGoals.length === 0" class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--gray-400);"></i>
+                <p class="mt-3 text-secondary">표시할 목표가 없습니다.</p>
+                <button class="btn btn-primary mt-2" @click="openAddGoalModal">
+                    <i class="bi bi-plus-circle"></i> 새 목표 추가하기
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Column - Info & Timeline -->
+        <div class="col-12 col-lg-4">
+            <!-- Goal Timeline -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-calendar-event text-primary"></i> 목표 일정
+                    </h5>
+                    <div class="timeline">
+                        <div v-for="event in timeline" :key="event.id" class="timeline-item mb-3">
+                            <div class="d-flex gap-3">
+                                <div class="timeline-dot" :class="event.type"></div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium" style="font-size: 0.875rem;">{{ event.title }}</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">{{ event.date }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card border-0 shadow-sm rounded-3" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb"></i> 목표 설정 팁
+                    </h5>
+                    <ul class="mb-0" style="font-size: 0.875rem; padding-left: 1.25rem;">
+                        <li class="mb-2">SMART 기준에 맞춰 구체적으로 설정하세요</li>
+                        <li class="mb-2">측정 가능한 핵심 결과(KR)를 정의하세요</li>
+                        <li class="mb-2">팀 목표와 연계하여 설정하세요</li>
+                        <li class="mb-2">주기적으로 진행 상황을 업데이트하세요</li>
+                        <li>필요시 상사와 1:1 미팅을 요청하세요</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Goal Modal -->
+    <div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white;">
+                    <h5 class="modal-title" id="addGoalModalLabel">
+                        <i class="bi bi-plus-circle"></i> 새 목표 추가
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form @submit.prevent="saveNewGoal">
+                        <!-- 목표 제목 -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-flag"></i> 목표 제목 *
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                v-model="newGoal.title"
+                                placeholder="예: Q2 신규 프로젝트 완료"
+                                required
+                            >
+                        </div>
+
+                        <!-- 목표 설명 -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-file-text"></i> 목표 설명 *
+                            </label>
+                            <textarea
+                                class="form-control"
+                                v-model="newGoal.description"
+                                rows="3"
+                                placeholder="목표에 대한 구체적인 설명을 입력하세요"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <!-- 팀 KPI 연결 -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-link-45deg"></i> 연결된 팀 KPI
+                            </label>
+                            <select class="form-select" v-model="newGoal.linkedTeamKPI">
+                                <option value="">선택 안 함 (개인 목표)</option>
+                                <option v-for="kpi in teamKPIs" :key="kpi.id" :value="kpi.id">
+                                    {{ kpi.title }} → {{ kpi.companyKPITitle }}
+                                </option>
+                            </select>
+                            <div class="form-text text-secondary" style="font-size: 0.875rem;">
+                                <i class="bi bi-info-circle"></i> 개인 목표를 팀 KPI에 연결하면 상위 목표와의 연계성을 확인할 수 있습니다.
+                            </div>
+                        </div>
+
+                        <!-- 카테고리 & 기간 -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-layers"></i> 카테고리 *
+                                </label>
+                                <select class="form-select" v-model="newGoal.category" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="개발">개발</option>
+                                    <option value="성장">성장</option>
+                                    <option value="품질">품질</option>
+                                    <option value="협업">협업</option>
+                                    <option value="리더십">리더십</option>
+                                    <option value="기타">기타</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-calendar"></i> 시작일 *
+                                </label>
+                                <input
+                                    type="date"
+                                    class="form-control"
+                                    v-model="newGoal.startDate"
+                                    required
+                                >
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-calendar-check"></i> 목표일 *
+                                </label>
+                                <input
+                                    type="date"
+                                    class="form-control"
+                                    v-model="newGoal.dueDate"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <!-- 핵심 결과 (KR) -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold mb-0">
+                                    <i class="bi bi-check2-square"></i> 핵심 결과 (KR)
+                                </label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @click="addKeyResult">
+                                    <i class="bi bi-plus"></i> KR 추가
+                                </button>
+                            </div>
+                            <p class="text-secondary" style="font-size: 0.875rem;">측정 가능한 핵심 결과를 최소 2개 이상 입력하세요</p>
+
+                            <div v-for="(kr, index) in newGoal.keyResults" :key="index" class="card mb-2 p-3" style="background: var(--gray-50);">
+                                <div class="row g-2">
+                                    <div class="col-md-8">
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            v-model="kr.title"
+                                            placeholder="KR 내용 (예: 사용자 만족도 90% 달성)"
+                                            required
+                                        >
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            v-model="kr.metric"
+                                            placeholder="측정 지표"
+                                            required
+                                        >
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger w-100" @click="removeKeyResult(index)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="newGoal.keyResults.length === 0" class="alert alert-info mb-0" role="alert" style="font-size: 0.875rem;">
+                                <i class="bi bi-info-circle"></i> 핵심 결과를 추가해주세요. SMART 기준에 맞춰 구체적이고 측정 가능하게 작성하세요.
+                            </div>
+                        </div>
+
+                        <!-- SMART 체크리스트 -->
+                        <div class="card p-3 mb-3" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                            <div class="fw-bold mb-2">
+                                <i class="bi bi-lightbulb"></i> SMART 목표 체크리스트
+                            </div>
+                            <div class="form-check" style="font-size: 0.875rem;">
+                                <input class="form-check-input" type="checkbox" id="smart1">
+                                <label class="form-check-label" for="smart1">
+                                    <strong>S</strong>pecific - 구체적인가?
+                                </label>
+                            </div>
+                            <div class="form-check" style="font-size: 0.875rem;">
+                                <input class="form-check-input" type="checkbox" id="smart2">
+                                <label class="form-check-label" for="smart2">
+                                    <strong>M</strong>easurable - 측정 가능한가?
+                                </label>
+                            </div>
+                            <div class="form-check" style="font-size: 0.875rem;">
+                                <input class="form-check-input" type="checkbox" id="smart3">
+                                <label class="form-check-label" for="smart3">
+                                    <strong>A</strong>chievable - 달성 가능한가?
+                                </label>
+                            </div>
+                            <div class="form-check" style="font-size: 0.875rem;">
+                                <input class="form-check-input" type="checkbox" id="smart4">
+                                <label class="form-check-label" for="smart4">
+                                    <strong>R</strong>elevant - 관련성이 있는가?
+                                </label>
+                            </div>
+                            <div class="form-check" style="font-size: 0.875rem;">
+                                <input class="form-check-input" type="checkbox" id="smart5">
+                                <label class="form-check-label" for="smart5">
+                                    <strong>T</strong>ime-bound - 기한이 명확한가?
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle"></i> 취소
+                            </button>
+                            <button type="submit" class="btn btn-primary" :disabled="!isFormValid">
+                                <i class="bi bi-check-circle"></i> 목표 저장
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Goal Modal -->
+    <div class="modal fade" id="editGoalModal" tabindex="-1" aria-labelledby="editGoalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--warning-color), #f59e0b); color: white;">
+                    <h5 class="modal-title" id="editGoalModalLabel">
+                        <i class="bi bi-pencil"></i> 목표 수정
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form @submit.prevent="saveEditGoal">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-flag"></i> 목표 제목 *
+                            </label>
+                            <input type="text" class="form-control" v-model="editingGoal.title" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-file-text"></i> 목표 설명 *
+                            </label>
+                            <textarea class="form-control" v-model="editingGoal.description" rows="3" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-link-45deg"></i> 연결된 팀 KPI
+                            </label>
+                            <select class="form-select" v-model="editingGoal.linkedTeamKPI">
+                                <option value="">선택 안 함 (개인 목표)</option>
+                                <option v-for="kpi in teamKPIs" :key="kpi.id" :value="kpi.id">
+                                    {{ kpi.title }} → {{ kpi.companyKPITitle }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">카테고리 *</label>
+                                <select class="form-select" v-model="editingGoal.category" required>
+                                    <option value="개발">개발</option>
+                                    <option value="성장">성장</option>
+                                    <option value="품질">품질</option>
+                                    <option value="협업">협업</option>
+                                    <option value="리더십">리더십</option>
+                                    <option value="기타">기타</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">시작일 *</label>
+                                <input type="date" class="form-control" v-model="editingGoal.startDate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">목표일 *</label>
+                                <input type="date" class="form-control" v-model="editingGoal.dueDate" required>
+                            </div>
+                        </div>
+
+                        <!-- 핵심 결과 (KR) 관리 -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold mb-0">
+                                    <i class="bi bi-check2-square"></i> 핵심 결과 (KR)
+                                </label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @click="addEditKR">
+                                    <i class="bi bi-plus"></i> KR 추가
+                                </button>
+                            </div>
+                            <p class="text-secondary" style="font-size: 0.875rem;">핵심 결과를 추가, 수정, 삭제할 수 있습니다.</p>
+
+                            <div v-for="(kr, index) in editingGoal.keyResults" :key="kr.id || index" class="card mb-2 p-3" style="background: var(--gray-50);">
+                                <div class="row g-2">
+                                    <div class="col-md-8">
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            v-model="kr.title"
+                                            placeholder="KR 내용 (예: 사용자 만족도 90% 달성)"
+                                            required
+                                        >
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            v-model="kr.metric"
+                                            placeholder="측정 지표"
+                                            required
+                                        >
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger w-100" @click="removeEditKR(index)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="editingGoal.keyResults && editingGoal.keyResults.length === 0" class="alert alert-warning mb-0" role="alert" style="font-size: 0.875rem;">
+                                <i class="bi bi-exclamation-triangle"></i> 핵심 결과가 없습니다. 최소 1개 이상의 KR을 추가해주세요.
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle"></i> 취소
+                            </button>
+                            <button type="submit" class="btn btn-warning text-white">
+                                <i class="bi bi-check-circle"></i> 수정 저장
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Detail Modal -->
+    <div class="modal fade" id="goalDetailModal" tabindex="-1" aria-labelledby="goalDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white;">
+                    <h5 class="modal-title" id="goalDetailModalLabel">
+                        <i class="bi bi-eye"></i> 목표 상세
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" v-if="viewingGoal">
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3">{{ viewingGoal.title }}</h5>
+                        <p class="text-secondary mb-3">{{ viewingGoal.description }}</p>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <div class="text-secondary" style="font-size: 0.875rem;">카테고리</div>
+                                <div class="fw-medium">{{ viewingGoal.category }}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-secondary" style="font-size: 0.875rem;">상태</div>
+                                <span class="badge" :class="'badge-' + getStatusBadgeClass(viewingGoal.status)">
+                                    {{ getStatusText(viewingGoal.status) }}
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-secondary" style="font-size: 0.875rem;">시작일</div>
+                                <div class="fw-medium">{{ viewingGoal.startDate }}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-secondary" style="font-size: 0.875rem;">목표일</div>
+                                <div class="fw-medium">{{ viewingGoal.dueDate }}</div>
+                            </div>
+                        </div>
+
+                        <div v-if="viewingGoal.linkedTeamKPI" class="card p-3 mb-3 border-0" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe);">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-link-45deg text-primary fs-5"></i>
+                                <div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">연결된 팀 KPI</div>
+                                    <div class="fw-medium text-primary">{{ viewingGoal.teamKPITitle }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary" style="font-size: 0.875rem;">달성률</span>
+                                <span class="fw-bold fs-5" :class="'text-' + getSignalClass(viewingGoal.achievement)">
+                                    {{ viewingGoal.achievement }}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" :class="'bg-' + getSignalClass(viewingGoal.achievement)"
+                                     :style="{ width: viewingGoal.achievement + '%' }">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-3">핵심 결과 (KR)</h6>
+                            <div v-for="kr in viewingGoal.keyResults" :key="kr.id" class="card p-3 mb-2">
+                                <div class="d-flex align-items-start gap-3">
+                                    <i v-if="kr.completed" class="bi bi-check-circle-fill text-success fs-5"></i>
+                                    <i v-else class="bi bi-circle text-secondary fs-5"></i>
+                                    <div class="flex-grow-1">
+                                        <div :class="{ 'text-decoration-line-through text-secondary': kr.completed }">
+                                            {{ kr.title }}
+                                        </div>
+                                        <span class="badge mt-2" :class="kr.completed ? 'bg-success' : 'bg-primary'">
+                                            {{ kr.metric }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-warning" @click="openEditFromDetail">
+                        <i class="bi bi-pencil"></i> 수정
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Update Modal -->
+    <div class="modal fade" id="progressUpdateModal" tabindex="-1" aria-labelledby="progressUpdateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--success-color), #10b981); color: white;">
+                    <h5 class="modal-title" id="progressUpdateModalLabel">
+                        <i class="bi bi-arrow-up-circle"></i> 진행 상황 업데이트
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" v-if="updatingGoal">
+                    <div class="mb-3">
+                        <h6 class="fw-bold">{{ updatingGoal.title }}</h6>
+                        <p class="text-secondary mb-0" style="font-size: 0.875rem;">{{ updatingGoal.description }}</p>
+                    </div>
+
+                    <div class="alert alert-info" role="alert" style="font-size: 0.875rem;">
+                        <i class="bi bi-info-circle"></i> 핵심 결과(KR)의 완료 상태를 업데이트하면 자동으로 달성률이 계산됩니다.
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">핵심 결과 (KR) 체크리스트</h6>
+                        <div v-for="(kr, index) in updatingGoal.keyResults" :key="kr.id" class="card p-3 mb-2">
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="checkbox" class="form-check-input" style="width: 20px; height: 20px;"
+                                       v-model="kr.completed" @change="recalculateProgress">
+                                <div class="flex-grow-1">
+                                    <div :class="{ 'text-decoration-line-through text-secondary': kr.completed }">
+                                        {{ kr.title }}
+                                    </div>
+                                    <span class="badge mt-1" :class="kr.completed ? 'bg-success' : 'bg-secondary'">
+                                        {{ kr.metric }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-3" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-secondary" style="font-size: 0.875rem;">현재 달성률</div>
+                                <div class="fw-bold fs-4" :class="'text-' + getSignalClass(updatingGoal.achievement)">
+                                    {{ updatingGoal.achievement }}%
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="text-secondary" style="font-size: 0.875rem;">완료된 KR</div>
+                                <div class="fw-bold fs-5">
+                                    {{ updatingGoal.keyResults.filter(kr => kr.completed).length }} / {{ updatingGoal.keyResults.length }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-success" @click="saveProgressUpdate">
+                        <i class="bi bi-check-circle"></i> 업데이트 저장
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style scoped>
+.timeline-item {
+    position: relative;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.timeline-dot.upcoming {
+    background: var(--gray-300);
+}
+
+.timeline-dot.inProgress {
+    background: var(--primary-color);
+}
+
+.timeline-dot.completed {
+    background: var(--success-color);
+}
+
+.timeline-dot.overdue {
+    background: var(--danger-color);
+}
+</style>

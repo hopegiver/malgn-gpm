@@ -1,0 +1,291 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">안녕하세요, {{ userName }}님!</h1>
+        <p class="page-subtitle">오늘도 목표를 향해 한 걸음 나아가는 하루 되세요.</p>
+    </div>
+
+    <!-- Goal Achievement Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-secondary fw-medium">목표 달성률</div>
+                        <div class="fw-bold" style="font-size: 2rem;">{{ stats.goalAchievement }}%</div>
+                    </div>
+                    <div class="stat-icon primary rounded-3">
+                        <i class="bi bi-bullseye"></i>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" :class="getSignalClass(stats.goalAchievement)" :style="{ width: stats.goalAchievement + '%' }"></div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="stat-trend" :class="stats.goalTrend >= 0 ? 'up' : 'down'">
+                        <i class="bi" :class="stats.goalTrend >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
+                        {{ Math.abs(stats.goalTrend) }}% 지난주 대비
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-secondary fw-medium">이번 주 실행율</div>
+                        <div class="fw-bold" style="font-size: 2rem;">{{ stats.weeklyExecution }}%</div>
+                    </div>
+                    <div class="stat-icon success rounded-3">
+                        <i class="bi bi-lightning-fill"></i>
+                    </div>
+                </div>
+                <div class="text-secondary" style="font-size: 0.875rem;">
+                    {{ stats.completedTasks }}/{{ stats.totalTasks }} 완료
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-secondary fw-medium">성장 점수</div>
+                        <div class="fw-bold" style="font-size: 2rem;">{{ stats.growthScore }}</div>
+                    </div>
+                    <div class="stat-icon growth rounded-3">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+                <div class="text-secondary" style="font-size: 0.875rem;">
+                    역량 {{ stats.competencyCount }}개 향상 중
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-secondary fw-medium">받은 피드백</div>
+                        <div class="fw-bold" style="font-size: 2rem;">{{ stats.feedbackCount }}</div>
+                    </div>
+                    <div class="stat-icon warning rounded-3">
+                        <i class="bi bi-chat-left-text-fill"></i>
+                    </div>
+                </div>
+                <div class="text-secondary" style="font-size: 0.875rem;">
+                    이번 달 {{ stats.newFeedback }}개 신규
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-12 col-lg-8">
+            <!-- Today's Tasks -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-check-circle text-primary"></i> 오늘의 업무
+                        </h5>
+                        <a href="#/execution/today" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                            전체 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div v-if="todayTasks.length === 0" class="text-center py-4 text-secondary">
+                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">등록된 업무가 없습니다.</p>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="task in todayTasks" :key="task.id" class="task-item p-3 mb-2 rounded-3 border" :class="{ 'task-completed': task.completed }">
+                            <div class="d-flex align-items-start gap-3">
+                                <input type="checkbox" class="form-check-input mt-1" :checked="task.completed" @change="toggleTask(task.id)">
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium" :class="{ 'text-decoration-line-through text-secondary': task.completed }">
+                                        {{ task.title }}
+                                    </div>
+                                    <div class="text-secondary" style="font-size: 0.875rem;">
+                                        <span class="badge" :class="getPriorityClass(task.priority)">{{ task.priority }}</span>
+                                        <span class="ms-2">{{ task.goalName }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-end text-secondary" style="font-size: 0.875rem;">
+                                    {{ task.estimatedTime }}h
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Progress Chart -->
+            <div class="chart-container mb-4">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-bar-chart text-primary"></i> 이번 주 실행 현황
+                    </h5>
+                </div>
+                <canvas ref="weeklyChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <!-- My Goals -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-bullseye text-primary"></i> 나의 목표
+                        </h5>
+                        <a href="#/goals/my-goals" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                            전체 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div v-for="goal in myGoals" :key="goal.id" class="goal-item p-3 mb-3 rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold mb-1">{{ goal.title }}</div>
+                                <div class="text-secondary" style="font-size: 0.875rem;">{{ goal.description }}</div>
+                            </div>
+                            <span class="signal-light" :class="getSignalClass(goal.achievement)">
+                                <i class="bi bi-circle-fill"></i>
+                                {{ goal.achievement }}%
+                            </span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-label">
+                                <span style="color: var(--gray-600); font-size: 0.875rem;">진행률</span>
+                                <span style="color: var(--gray-900); font-weight: 600;">{{ goal.achievement }}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" :class="getSignalClass(goal.achievement)" :style="{ width: goal.achievement + '%' }"></div>
+                            </div>
+                        </div>
+                        <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                            <i class="bi bi-calendar"></i> 목표일: {{ goal.dueDate }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-12 col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightning-fill text-warning"></i> 빠른 실행
+                    </h5>
+                    <div class="quick-menu">
+                        <a href="#/execution/today" class="quick-menu-item">
+                            <div class="quick-menu-icon">
+                                <i class="bi bi-pencil-square"></i>
+                            </div>
+                            <div class="quick-menu-label">업무 등록</div>
+                        </a>
+                        <a href="#/goals/my-goals" class="quick-menu-item">
+                            <div class="quick-menu-icon">
+                                <i class="bi bi-flag"></i>
+                            </div>
+                            <div class="quick-menu-label">목표 설정</div>
+                        </a>
+                        <a href="#/execution/weekly" class="quick-menu-item">
+                            <div class="quick-menu-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="quick-menu-label">주간 보고</div>
+                        </a>
+                        <a href="#/growth/my-map" class="quick-menu-item">
+                            <div class="quick-menu-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <div class="quick-menu-label">성장 맵</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Feedback -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-chat-left-text text-info"></i> 최근 피드백
+                        </h5>
+                        <a href="#/growth/my-map" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                            전체 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div v-for="feedback in recentFeedback" :key="feedback.id" class="feedback-item p-3 mb-2 rounded-3" style="background: var(--gray-50);">
+                        <div class="d-flex align-items-start gap-2 mb-2">
+                            <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.875rem;">
+                                {{ feedback.fromInitial }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium" style="font-size: 0.875rem;">{{ feedback.fromName }}</div>
+                                <div class="text-secondary" style="font-size: 0.75rem;">{{ feedback.date }}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.875rem; color: var(--gray-700);">
+                            {{ feedback.content }}
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge" :class="feedback.type === 'positive' ? 'success' : 'primary'">
+                                {{ feedback.type === 'positive' ? '칭찬' : '제안' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Growth Radar -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-pentagon text-success"></i> 역량 현황
+                    </h5>
+                </div>
+                <canvas ref="radarChart" style="max-height: 250px;"></canvas>
+                <div class="text-center mt-3">
+                    <a href="#/growth/my-map" class="btn btn-sm btn-outline-primary">
+                        상세 보기 <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style scoped>
+.task-item {
+    transition: all var(--transition-base);
+    background: white;
+}
+
+.task-item:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-color) !important;
+}
+
+.task-completed {
+    opacity: 0.6;
+}
+
+.goal-item {
+    transition: all var(--transition-base);
+}
+
+.goal-item:hover {
+    border-color: var(--primary-color) !important;
+    box-shadow: var(--shadow-sm);
+}
+</style>

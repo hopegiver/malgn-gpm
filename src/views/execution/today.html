@@ -1,0 +1,297 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">오늘의 업무</h1>
+        <p class="page-subtitle">{{ selectedDateText }} - 오늘 하루의 업무를 기록하고 관리하세요.</p>
+    </div>
+
+    <!-- Date Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-secondary" @click="previousDay">
+            <i class="bi bi-chevron-left"></i> 이전 날
+        </button>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-primary" @click="goToToday">
+                <i class="bi bi-calendar-day"></i> 오늘
+            </button>
+            <span v-if="!isToday" class="badge bg-warning text-dark">
+                <i class="bi bi-clock-history"></i> 과거 기록
+            </span>
+        </div>
+        <button class="btn btn-outline-secondary" @click="nextDay" :disabled="isToday">
+            다음 날 <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Daily Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">계획 시간</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ stats.plannedHours }}h</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">실행 시간</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ stats.executedHours }}h</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">완료 업무</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ stats.completedTasks }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">전체 업무</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ stats.totalTasks }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Task List -->
+        <div class="col-12 col-lg-8">
+            <!-- Add Task Card -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4" style="border-left: 4px solid var(--primary-color) !important;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-plus-circle text-primary"></i> 새 업무 추가
+                    </h5>
+                    <form @submit.prevent="addTask">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="업무 내용을 입력하세요..."
+                                    v-model="newTask.title"
+                                    required
+                                >
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" v-model="newTask.goalId">
+                                    <option value="">연결할 목표 선택</option>
+                                    <option v-for="goal in goals" :key="goal.id" :value="goal.id">
+                                        {{ goal.title }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" v-model="newTask.priority">
+                                    <option value="High">높음</option>
+                                    <option value="Medium" selected>보통</option>
+                                    <option value="Low">낮음</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    placeholder="예상 시간"
+                                    v-model.number="newTask.estimatedTime"
+                                    min="0.5"
+                                    step="0.5"
+                                    required
+                                >
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-plus"></i> 추가
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Copy from Previous Days -->
+            <div v-if="!isToday && tasks.length > 0" class="card border-0 shadow-sm rounded-3 mb-4" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="fw-bold mb-1">
+                                <i class="bi bi-arrow-right-circle"></i> 오늘로 복사
+                            </h6>
+                            <small class="text-secondary">선택한 업무를 오늘 날짜로 복사합니다</small>
+                        </div>
+                        <button class="btn btn-primary" @click="copyTasksToToday">
+                            <i class="bi bi-copy"></i> {{ selectedTaskIds.length }}개 업무 복사
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Filters -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="btn-group">
+                    <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'all', 'btn-outline-secondary': taskFilter !== 'all' }" @click="taskFilter = 'all'">
+                        전체 ({{ tasks.length }})
+                    </button>
+                    <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'pending', 'btn-outline-secondary': taskFilter !== 'pending' }" @click="taskFilter = 'pending'">
+                        진행 중 ({{ pendingTasks.length }})
+                    </button>
+                    <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'completed', 'btn-outline-secondary': taskFilter !== 'completed' }" @click="taskFilter = 'completed'">
+                        완료 ({{ completedTasks.length }})
+                    </button>
+                </div>
+                <div class="text-secondary" style="font-size: 0.875rem;">
+                    총 {{ stats.executedHours }} / {{ stats.plannedHours }} 시간
+                </div>
+            </div>
+
+            <!-- Task List -->
+            <div v-for="task in filteredTasks" :key="task.id" class="card border-0 shadow-sm rounded-3 mb-3" :class="{ 'opacity-75': task.completed }">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <!-- Selection Checkbox (only for past days) -->
+                        <input
+                            v-if="!isToday"
+                            type="checkbox"
+                            class="form-check-input mt-1"
+                            style="width: 20px; height: 20px;"
+                            :checked="selectedTaskIds.includes(task.id)"
+                            @change="toggleTaskSelection(task.id)"
+                            title="복사할 업무 선택"
+                        >
+
+                        <!-- Completion Checkbox -->
+                        <input
+                            type="checkbox"
+                            class="form-check-input mt-1"
+                            style="width: 20px; height: 20px;"
+                            :checked="task.completed"
+                            @change="toggleTask(task.id)"
+                            :disabled="!isToday"
+                            title="업무 완료"
+                        >
+
+                        <!-- Task Content -->
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold mb-1" :class="{ 'text-decoration-line-through text-secondary': task.completed }">
+                                        {{ task.title }}
+                                    </div>
+                                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                                        <span class="badge" :class="getPriorityClass(task.priority)">
+                                            {{ getPriorityText(task.priority) }}
+                                        </span>
+                                        <span v-if="task.goalName" class="text-secondary" style="font-size: 0.875rem;">
+                                            <i class="bi bi-bullseye"></i> {{ task.goalName }}
+                                        </span>
+                                        <span class="text-secondary" style="font-size: 0.875rem;">
+                                            <i class="bi bi-clock"></i> {{ task.estimatedTime }}h
+                                        </span>
+                                        <span v-if="task.actualTime" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                                            <i class="bi bi-check-circle"></i> 실제 {{ task.actualTime }}h
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Time Tracking -->
+                            <div v-if="!task.completed" class="d-flex gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-primary" @click="startTimer(task.id)">
+                                    <i class="bi bi-play-fill"></i> 시작
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" @click="completeTask(task.id)">
+                                    <i class="bi bi-check-circle"></i> 완료
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" @click="editTask(task.id)">
+                                    <i class="bi bi-pencil"></i> 수정
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)">
+                                    <i class="bi bi-trash"></i> 삭제
+                                </button>
+                            </div>
+
+                            <!-- Completion Info -->
+                            <div v-if="task.completed" class="mt-2 text-secondary" style="font-size: 0.875rem;">
+                                <i class="bi bi-check-circle-fill text-success"></i> {{ task.completedAt }}에 완료
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="filteredTasks.length === 0" class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--gray-400);"></i>
+                <p class="mt-3 text-secondary">표시할 업무가 없습니다.</p>
+            </div>
+        </div>
+
+        <!-- Right Column - Info & History -->
+        <div class="col-12 col-lg-4">
+            <!-- Daily Summary -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-clipboard-data text-primary"></i> 오늘의 요약
+                    </h5>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary" style="font-size: 0.875rem;">업무 완료율</span>
+                            <span class="fw-bold">{{ completionRate }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill green" :style="{ width: completionRate + '%' }"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary" style="font-size: 0.875rem;">시간 활용률</span>
+                            <span class="fw-bold">{{ timeUtilization }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" :class="getSignalClass(timeUtilization)" :style="{ width: timeUtilization + '%' }"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-secondary" style="font-size: 0.875rem;">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>높은 우선순위</span>
+                            <span class="fw-medium">{{ highPriorityCount }}개</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>보통 우선순위</span>
+                            <span class="fw-medium">{{ mediumPriorityCount }}개</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>낮은 우선순위</span>
+                            <span class="fw-medium">{{ lowPriorityCount }}개</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goal Distribution -->
+            <div class="chart-container mb-4">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-pie-chart text-success"></i> 목표별 분포
+                    </h5>
+                </div>
+                <canvas ref="goalChart" style="max-height: 250px;"></canvas>
+            </div>
+
+            <!-- Tips -->
+            <div class="card border-0 shadow-sm rounded-3" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb"></i> 업무 관리 팁
+                    </h5>
+                    <ul class="mb-0" style="font-size: 0.875rem; padding-left: 1.25rem;">
+                        <li class="mb-2">우선순위가 높은 업무부터 처리하세요</li>
+                        <li class="mb-2">업무별 예상 시간을 설정하세요</li>
+                        <li class="mb-2">완료 시 실제 소요 시간을 기록하세요</li>
+                        <li class="mb-2">업무를 목표와 연결하여 관리하세요</li>
+                        <li>하루 8시간 이내로 계획하세요</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

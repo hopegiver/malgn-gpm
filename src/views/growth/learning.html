@@ -1,0 +1,308 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">학습 & 개발</h1>
+        <p class="page-subtitle">학습 이력과 계획을 관리하세요</p>
+    </div>
+
+    <!-- Learning Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">총 학습 시간</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ totalHours }}h</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-calendar-month"></i> 이번 달 {{ thisMonthHours }}h
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">완료한 학습</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ completedCount }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-list-check"></i> 전체 {{ totalCount }}개
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">진행 중인 학습</div>
+                <div class="fw-bold text-warning" style="font-size: 2rem;">{{ inProgressCount }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-hourglass-split"></i> 평균 {{ avgProgress }}% 완료
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">주간 학습 시간</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ weeklyHours }}h</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-graph-up"></i> 목표 {{ weeklyGoal }}h
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Learning Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group">
+            <button class="btn" :class="learningFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="learningFilter = 'all'">
+                전체 ({{ totalCount }})
+            </button>
+            <button class="btn" :class="learningFilter === 'in-progress' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="learningFilter = 'in-progress'">
+                진행 중 ({{ inProgressCount }})
+            </button>
+            <button class="btn" :class="learningFilter === 'completed' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="learningFilter = 'completed'">
+                완료 ({{ completedCount }})
+            </button>
+            <button class="btn" :class="learningFilter === 'planned' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="learningFilter = 'planned'">
+                계획 ({{ plannedCount }})
+            </button>
+        </div>
+        <button class="btn btn-primary" @click="openAddLearningModal">
+            <i class="bi bi-plus-circle"></i> 새 학습 추가
+        </button>
+    </div>
+
+    <!-- Learning Timeline Chart -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-graph-up text-primary"></i> 월별 학습 시간 추이
+            </h5>
+            <canvas ref="learningTrendChart" style="max-height: 250px;"></canvas>
+        </div>
+    </div>
+
+    <!-- Learning Items -->
+    <div class="row g-4">
+        <div v-for="item in filteredLearningItems" :key="item.id" class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body p-4">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge" :class="getLearningTypeBadgeClass(item.type)">
+                                    {{ getLearningTypeText(item.type) }}
+                                </span>
+                                <span v-if="item.status === 'completed'" class="badge bg-success">완료</span>
+                                <span v-else-if="item.status === 'in-progress'" class="badge bg-warning">진행 중</span>
+                                <span v-else class="badge bg-secondary">계획</span>
+                            </div>
+                            <h6 class="fw-bold mb-1">{{ item.title }}</h6>
+                            <p class="text-secondary mb-0" style="font-size: 0.875rem;">{{ item.provider }}</p>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" @click.prevent="editLearning(item.id)">
+                                    <i class="bi bi-pencil"></i> 수정
+                                </a></li>
+                                <li><a class="dropdown-item" href="#" @click.prevent="deleteLearning(item.id)">
+                                    <i class="bi bi-trash"></i> 삭제
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Competency Link -->
+                    <div v-if="item.competencyName" class="mb-3">
+                        <span class="badge bg-light text-dark" style="font-size: 0.75rem;">
+                            <i class="bi bi-link-45deg"></i> {{ item.competencyName }}
+                        </span>
+                    </div>
+
+                    <!-- Progress -->
+                    <div v-if="item.status !== 'planned'" class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-secondary" style="font-size: 0.875rem;">진척도</span>
+                            <span class="fw-bold" style="font-size: 0.875rem;">{{ item.progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" :class="item.status === 'completed' ? 'bg-success' : 'bg-warning'"
+                                 :style="{ width: item.progress + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <!-- Time Info -->
+                    <div class="d-flex gap-3 mb-3" style="font-size: 0.875rem;">
+                        <div>
+                            <i class="bi bi-clock text-secondary"></i>
+                            <span class="text-secondary">소요 시간:</span>
+                            <span class="fw-medium">{{ item.spentHours }}h</span>
+                            <span v-if="item.totalHours" class="text-secondary">/ {{ item.totalHours }}h</span>
+                        </div>
+                        <div v-if="item.startDate">
+                            <i class="bi bi-calendar text-secondary"></i>
+                            <span class="text-secondary">시작:</span>
+                            <span class="fw-medium">{{ formatDate(item.startDate) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <p v-if="item.description" class="text-secondary mb-3" style="font-size: 0.875rem;">
+                        {{ item.description }}
+                    </p>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        <button v-if="item.status === 'planned'" class="btn btn-sm btn-primary"
+                                @click="startLearning(item.id)">
+                            <i class="bi bi-play"></i> 시작하기
+                        </button>
+                        <button v-if="item.status === 'in-progress'" class="btn btn-sm btn-warning"
+                                @click="updateProgress(item.id)">
+                            <i class="bi bi-pencil"></i> 진척도 업데이트
+                        </button>
+                        <button v-if="item.status === 'in-progress'" class="btn btn-sm btn-success"
+                                @click="completeLearning(item.id)">
+                            <i class="bi bi-check-circle"></i> 완료
+                        </button>
+                        <button v-if="item.url" class="btn btn-sm btn-outline-primary"
+                                @click="openUrl(item.url)">
+                            <i class="bi bi-box-arrow-up-right"></i> 바로가기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-if="filteredLearningItems.length === 0" class="text-center py-5">
+        <i class="bi bi-book" style="font-size: 3rem; color: var(--gray-300);"></i>
+        <p class="text-secondary mt-3">등록된 학습이 없습니다.</p>
+        <button class="btn btn-primary mt-2" @click="openAddLearningModal">
+            <i class="bi bi-plus-circle"></i> 첫 학습 추가하기
+        </button>
+    </div>
+
+    <!-- Add/Edit Learning Modal -->
+    <div v-if="showLearningModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeLearningModal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ learningForm.id ? '학습 수정' : '새 학습 추가' }}</h5>
+                    <button type="button" class="btn-close" @click="closeLearningModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">학습 유형 <span class="text-danger">*</span></label>
+                            <select class="form-select" v-model="learningForm.type">
+                                <option value="course">온라인 강의</option>
+                                <option value="book">도서</option>
+                                <option value="seminar">세미나/워크샵</option>
+                                <option value="conference">컨퍼런스</option>
+                                <option value="certification">자격증</option>
+                                <option value="project">프로젝트 학습</option>
+                                <option value="other">기타</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">학습 제목 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" v-model="learningForm.title"
+                                   placeholder="예: React 고급 패턴 마스터하기">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">제공자/출판사</label>
+                            <input type="text" class="form-control" v-model="learningForm.provider"
+                                   placeholder="예: Udemy, 인프런, O'Reilly 등">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">연계 역량</label>
+                            <select class="form-select" v-model="learningForm.competencyId">
+                                <option :value="null">선택 안함</option>
+                                <option v-for="comp in availableCompetencies" :key="comp.id" :value="comp.id">
+                                    {{ comp.categoryName }} - {{ comp.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">예상 소요 시간 (시간)</label>
+                            <input type="number" class="form-control" v-model.number="learningForm.totalHours"
+                                   min="0" step="0.5" placeholder="0">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">시작 날짜</label>
+                            <input type="date" class="form-control" v-model="learningForm.startDate">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">학습 내용 설명</label>
+                            <textarea class="form-control" rows="3" v-model="learningForm.description"
+                                      placeholder="학습 내용이나 목표를 간단히 설명해주세요"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">URL (강의 링크, 도서 링크 등)</label>
+                            <input type="url" class="form-control" v-model="learningForm.url"
+                                   placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeLearningModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="saveLearning">
+                        {{ learningForm.id ? '수정' : '추가' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress Modal -->
+    <div v-if="showProgressModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeProgressModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">진척도 업데이트</h5>
+                    <button type="button" class="btn-close" @click="closeProgressModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ selectedLearningItem?.title }}</label>
+                        <p class="text-secondary" style="font-size: 0.875rem;">현재 진척도: {{ selectedLearningItem?.progress }}%</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">진척도 (%)</label>
+                        <input type="range" class="form-range" v-model.number="progressForm.progress"
+                               min="0" max="100" step="5">
+                        <div class="text-center fw-bold" style="font-size: 1.5rem;">{{ progressForm.progress }}%</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">추가 학습 시간 (시간)</label>
+                        <input type="number" class="form-control" v-model.number="progressForm.additionalHours"
+                               min="0" step="0.5" placeholder="0">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">학습 메모 (선택)</label>
+                        <textarea class="form-control" rows="3" v-model="progressForm.note"
+                                  placeholder="오늘 학습한 내용이나 느낀 점을 기록하세요"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeProgressModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="saveProgress">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,130 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀 목표 보기</h1>
+        <p class="page-subtitle">우리 팀의 KPI와 회사 목표와의 연계를 확인하세요.</p>
+    </div>
+
+    <!-- Team Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">전체 팀 KPI</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ teamStats.total }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">목표 달성</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ teamStats.achieved }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">주의 필요</div>
+                <div class="fw-bold text-warning" style="font-size: 2rem;">{{ teamStats.warning }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">평균 달성률</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ teamStats.avgAchievement }}%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BSC Category Tabs -->
+    <div class="mb-4">
+        <div class="btn-group w-100" role="group">
+            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === 'all', 'btn-outline-secondary': selectedCategory !== 'all' }" @click="selectedCategory = 'all'">
+                전체 ({{ teamKPIs.length }})
+            </button>
+            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '재무', 'btn-outline-secondary': selectedCategory !== '재무' }" @click="selectedCategory = '재무'">
+                재무 ({{ getCategoryCount('재무') }})
+            </button>
+            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '고객', 'btn-outline-secondary': selectedCategory !== '고객' }" @click="selectedCategory = '고객'">
+                고객 ({{ getCategoryCount('고객') }})
+            </button>
+            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '프로세스', 'btn-outline-secondary': selectedCategory !== '프로세스' }" @click="selectedCategory = '프로세스'">
+                프로세스 ({{ getCategoryCount('프로세스') }})
+            </button>
+            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '학습과성장', 'btn-outline-secondary': selectedCategory !== '학습과성장' }" @click="selectedCategory = '학습과성장'">
+                학습과성장 ({{ getCategoryCount('학습과성장') }})
+            </button>
+        </div>
+    </div>
+
+    <!-- Team KPIs List -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div v-for="kpi in filteredKPIs" :key="kpi.id" class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-4">
+                    <!-- KPI Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h5 class="fw-bold mb-0">{{ kpi.title }}</h5>
+                                <span class="badge" :class="getCategoryBadgeClass(kpi.category)">
+                                    {{ kpi.category }}
+                                </span>
+                            </div>
+                            <div class="d-flex gap-3 text-secondary" style="font-size: 0.875rem;">
+                                <span>
+                                    <i class="bi bi-people"></i> 개발팀
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="signal-light" :class="getSignalClass(kpi.achievement)">
+                                <i class="bi bi-circle-fill"></i>
+                                {{ kpi.achievement }}%
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Linked Company KPI -->
+                    <div class="card p-3 mb-3 border-0" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-building text-warning fs-5"></i>
+                            <div>
+                                <div class="text-secondary" style="font-size: 0.75rem;">연결된 회사 KPI</div>
+                                <div class="fw-medium">{{ kpi.companyKPITitle }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-bar-container">
+                        <div class="progress-label">
+                            <span style="color: var(--gray-600);">달성률</span>
+                            <span style="color: var(--gray-900); font-weight: 600;">{{ kpi.achievement }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" :class="getSignalClass(kpi.achievement)" :style="{ width: kpi.achievement + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="filteredKPIs.length === 0" class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--gray-400);"></i>
+                <p class="mt-3 text-secondary">해당 카테고리의 팀 KPI가 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="card border-0 shadow-sm rounded-3 mt-4" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-info-circle"></i> 팀 목표 안내
+            </h5>
+            <ul class="mb-0" style="font-size: 0.875rem; padding-left: 1.25rem;">
+                <li class="mb-2">팀의 모든 KPI는 회사의 전략적 목표와 연결되어 있습니다</li>
+                <li class="mb-2">개인 목표를 설정할 때 팀 KPI와 연계하여 설정하세요</li>
+                <li class="mb-2">팀 목표 달성을 위해 구성원 간 협력이 중요합니다</li>
+                <li>목표 달성이 어려울 경우 팀장에게 문의하세요</li>
+            </ul>
+        </div>
+    </div>
+</div>

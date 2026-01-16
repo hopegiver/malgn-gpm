@@ -1,0 +1,247 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">평가 이력</h1>
+        <p class="page-subtitle">과거 평가 결과와 피드백을 확인하세요</p>
+    </div>
+
+    <!-- Growth Trend Charts -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up text-primary"></i> 평가 점수 추이
+                    </h5>
+                    <p class="text-secondary mb-4" style="font-size: 0.875rem;">분기별 평균 평가 점수</p>
+                    <canvas ref="scoreTrendChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-radar text-success"></i> 역량 성장 추이
+                    </h5>
+                    <p class="text-secondary mb-4" style="font-size: 0.875rem;">역량별 레벨 변화</p>
+                    <canvas ref="competencyTrendChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 평가 점수</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ averageScore }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">/ 5.0</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 목표 달성률</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ averageAchievement }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">최근 1년</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">총 평가 횟수</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ totalEvaluations }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">건</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">가장 성장한 역량</div>
+                <div class="fw-bold text-warning" style="font-size: 1.2rem;">{{ topGrowthCompetency }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-arrow-up"></i> +{{ topGrowthValue }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group">
+            <button class="btn" :class="filterType === 'all' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="filterType = 'all'">
+                전체
+            </button>
+            <button class="btn" :class="filterType === 'quarterly' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="filterType = 'quarterly'">
+                분기 평가
+            </button>
+            <button class="btn" :class="filterType === 'half-yearly' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="filterType = 'half-yearly'">
+                반기 평가
+            </button>
+            <button class="btn" :class="filterType === 'annual' ? 'btn-primary' : 'btn-outline-secondary'"
+                    @click="filterType = 'annual'">
+                연간 평가
+            </button>
+        </div>
+    </div>
+
+    <!-- Evaluation History List -->
+    <div class="row g-4">
+        <div v-for="evaluation in filteredEvaluations" :key="evaluation.id" class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h5 class="fw-bold mb-0">{{ evaluation.title }}</h5>
+                                <span class="badge" :class="getEvaluationTypeBadgeClass(evaluation.type)">
+                                    {{ getEvaluationTypeText(evaluation.type) }}
+                                </span>
+                            </div>
+                            <p class="text-secondary mb-0" style="font-size: 0.875rem;">
+                                <i class="bi bi-calendar"></i> 평가 기간: {{ evaluation.period }}
+                                <span class="ms-3">
+                                    <i class="bi bi-person"></i> 평가자: {{ evaluation.evaluator }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-primary" style="font-size: 2rem;">{{ evaluation.totalScore }}</div>
+                            <div class="text-secondary" style="font-size: 0.875rem;">/ 5.0</div>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="text-secondary" style="font-size: 0.875rem;">목표 달성률</div>
+                            <div class="fw-bold">{{ evaluation.goalAchievement }}%</div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-secondary" style="font-size: 0.875rem;">역량 평균</div>
+                            <div class="fw-bold">{{ evaluation.competencyAverage }}/5.0</div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-secondary" style="font-size: 0.875rem;">제출일</div>
+                            <div class="fw-bold">{{ formatDate(evaluation.submittedAt) }}</div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-secondary" style="font-size: 0.875rem;">평가 완료일</div>
+                            <div class="fw-bold">{{ formatDate(evaluation.evaluatedAt) }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Expand/Collapse Button -->
+                    <button class="btn btn-sm btn-outline-primary w-100"
+                            @click="toggleEvaluationDetail(evaluation.id)">
+                        <i class="bi" :class="isExpanded(evaluation.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        {{ isExpanded(evaluation.id) ? '접기' : '상세 보기' }}
+                    </button>
+
+                    <!-- Detailed Content (Expandable) -->
+                    <div v-if="isExpanded(evaluation.id)" class="mt-4">
+                        <!-- Manager Feedback -->
+                        <div v-if="evaluation.managerFeedback" class="alert alert-info mb-4">
+                            <h6 class="fw-bold mb-2">
+                                <i class="bi bi-chat-quote"></i> 평가자 피드백
+                            </h6>
+                            <p class="mb-0" style="white-space: pre-line;">{{ evaluation.managerFeedback }}</p>
+                        </div>
+
+                        <!-- Goal Details -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="bi bi-bullseye"></i> 목표별 평가
+                            </h6>
+                            <div v-for="goal in evaluation.goalDetails" :key="goal.id" class="card bg-light border-0 mb-2">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-medium">{{ goal.title }}</div>
+                                            <p class="text-secondary mb-0" style="font-size: 0.875rem;">{{ goal.achievements }}</p>
+                                        </div>
+                                        <div class="text-end ms-3">
+                                            <div class="fw-bold">{{ goal.score }}/5</div>
+                                            <div class="text-secondary" style="font-size: 0.75rem;">달성률 {{ goal.achievement }}%</div>
+                                        </div>
+                                    </div>
+                                    <div v-if="goal.feedback" class="mt-2 pt-2 border-top">
+                                        <div class="text-secondary" style="font-size: 0.875rem;">
+                                            <strong>피드백:</strong> {{ goal.feedback }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Competency Details -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="bi bi-star"></i> 역량별 평가
+                            </h6>
+                            <div class="row g-2">
+                                <div v-for="comp in evaluation.competencyDetails" :key="comp.id"
+                                     class="col-12 col-md-6">
+                                    <div class="card border-0" style="background: #f9fafb;">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="fw-medium" style="font-size: 0.875rem;">{{ comp.name }}</div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-secondary">이전 {{ comp.previousLevel }}</span>
+                                                    <i class="bi bi-arrow-right"></i>
+                                                    <span class="badge bg-primary">현재 {{ comp.currentLevel }}</span>
+                                                </div>
+                                            </div>
+                                            <div v-if="comp.feedback" class="text-secondary" style="font-size: 0.75rem;">
+                                                {{ comp.feedback }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Overall Comments -->
+                        <div>
+                            <h6 class="fw-bold mb-3">
+                                <i class="bi bi-file-text"></i> 종합 의견
+                            </h6>
+                            <div class="card bg-light border-0">
+                                <div class="card-body p-3">
+                                    <div class="mb-3">
+                                        <div class="fw-medium mb-1">주요 성취</div>
+                                        <p class="text-secondary mb-0" style="font-size: 0.875rem; white-space: pre-line;">
+                                            {{ evaluation.majorAchievements }}
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="fw-medium mb-1">개선이 필요한 영역</div>
+                                        <p class="text-secondary mb-0" style="font-size: 0.875rem; white-space: pre-line;">
+                                            {{ evaluation.areasForImprovement }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium mb-1">다음 기간 계획</div>
+                                        <p class="text-secondary mb-0" style="font-size: 0.875rem; white-space: pre-line;">
+                                            {{ evaluation.nextPeriodPlan }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-if="filteredEvaluations.length === 0" class="text-center py-5">
+        <i class="bi bi-inbox" style="font-size: 3rem; color: var(--gray-300);"></i>
+        <p class="text-secondary mt-3">평가 이력이 없습니다.</p>
+    </div>
+</div>

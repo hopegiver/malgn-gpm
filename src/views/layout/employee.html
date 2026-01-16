@@ -1,0 +1,145 @@
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="app-sidebar" :class="{ 'icon-mode': sidebarIconMode }">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <i class="bi bi-bullseye"></i>
+                <span v-show="!sidebarIconMode">{{ appName }}</span>
+            </div>
+            <button class="sidebar-toggle" @click="toggleSidebar" v-show="!sidebarIconMode">
+                <i class="bi" :class="toggleIconClass"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- 대시보드 -->
+            <div class="nav-item">
+                <a href="#/dashboard/employee" class="nav-link" :class="{ active: isActive('/dashboard/employee') }">
+                    <i class="bi bi-house-door"></i>
+                    <span class="nav-label" v-show="!sidebarIconMode">대시보드</span>
+                </a>
+            </div>
+
+            <!-- 목표 -->
+            <div class="nav-accordion">
+                <div class="accordion-header" :class="{ active: isAccordionOpen('goals') }" @click="toggleAccordion('goals')">
+                    <i class="bi bi-bullseye icon"></i>
+                    <span v-show="!sidebarIconMode">목표</span>
+                    <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
+                </div>
+                <div class="accordion-content" :class="{ open: isAccordionOpen('goals') }" v-show="!sidebarIconMode">
+                    <a href="#/goals/my-goals" class="nav-link" :class="{ active: isActive('/goals/my-goals') }">
+                        <span class="nav-label">나의 목표</span>
+                    </a>
+                    <a href="#/goals/team-view" class="nav-link" :class="{ active: isActive('/goals/team-view') }">
+                        <span class="nav-label">팀 목표 보기</span>
+                    </a>
+                    <a href="#/goals/company-view" class="nav-link" :class="{ active: isActive('/goals/company-view') }">
+                        <span class="nav-label">회사 목표 보기</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 실행 -->
+            <div class="nav-accordion">
+                <div class="accordion-header" :class="{ active: isAccordionOpen('execution') }" @click="toggleAccordion('execution')">
+                    <i class="bi bi-lightning icon"></i>
+                    <span v-show="!sidebarIconMode">실행</span>
+                    <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
+                </div>
+                <div class="accordion-content" :class="{ open: isAccordionOpen('execution') }" v-show="!sidebarIconMode">
+                    <a href="#/execution/today" class="nav-link" :class="{ active: isActive('/execution/today') }">
+                        <span class="nav-label">오늘의 업무</span>
+                    </a>
+                    <a href="#/execution/weekly" class="nav-link" :class="{ active: isActive('/execution/weekly') }">
+                        <span class="nav-label">이번 주</span>
+                    </a>
+                    <a href="#/execution/weekly-report" class="nav-link" :class="{ active: isActive('/execution/weekly-report') }">
+                        <span class="nav-label">주간 보고서</span>
+                    </a>
+                    <a href="#/execution/monthly-stats" class="nav-link" :class="{ active: isActive('/execution/monthly-stats') }">
+                        <span class="nav-label">월간 통계</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 성장 -->
+            <div class="nav-accordion">
+                <div class="accordion-header" :class="{ active: isAccordionOpen('growth') }" @click="toggleAccordion('growth')">
+                    <i class="bi bi-graph-up-arrow icon"></i>
+                    <span v-show="!sidebarIconMode">성장</span>
+                    <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
+                </div>
+                <div class="accordion-content" :class="{ open: isAccordionOpen('growth') }" v-show="!sidebarIconMode">
+                    <a href="#/growth/my-map" class="nav-link" :class="{ active: isActive('/growth/my-map') }">
+                        <span class="nav-label">나의 성장 맵</span>
+                    </a>
+                    <a href="#/growth/learning" class="nav-link" :class="{ active: isActive('/growth/learning') }">
+                        <span class="nav-label">학습 & 개발</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 평가 -->
+            <div class="nav-accordion">
+                <div class="accordion-header" :class="{ active: isAccordionOpen('review') }" @click="toggleAccordion('review')">
+                    <i class="bi bi-clipboard-check icon"></i>
+                    <span v-show="!sidebarIconMode">평가</span>
+                    <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
+                </div>
+                <div class="accordion-content" :class="{ open: isAccordionOpen('review') }" v-show="!sidebarIconMode">
+                    <a href="#/review/self" class="nav-link" :class="{ active: isActive('/review/self') }">
+                        <span class="nav-label">자기평가</span>
+                    </a>
+                    <a href="#/review/history" class="nav-link" :class="{ active: isActive('/review/history') }">
+                        <span class="nav-label">평가 이력</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="app-header" :class="{ 'with-sidebar': !sidebarIconMode, 'with-sidebar-icon': sidebarIconMode }">
+        <div class="header-logo d-md-none">
+            <i class="bi bi-bullseye"></i>
+            <span>{{ appName }}</span>
+        </div>
+
+        <div class="header-search">
+            <div style="position: relative;">
+                <i class="bi bi-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                <input type="text" placeholder="검색..." v-model="searchQuery" @keyup.enter="handleSearch">
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- 알림 -->
+            <button class="header-action" @click="toggleNotifications">
+                <i class="bi bi-bell"></i>
+                <span class="badge" v-if="notificationCount > 0">{{ notificationCount }}</span>
+            </button>
+
+            <!-- 피드백 -->
+            <button class="header-action" @click="goToFeedback">
+                <i class="bi bi-chat-left-text"></i>
+                <span class="badge" v-if="feedbackCount > 0">{{ feedbackCount }}</span>
+            </button>
+
+            <!-- 사용자 메뉴 -->
+            <div class="user-menu" @click="toggleUserMenu">
+                <div class="user-avatar">{{ userInitial }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ userName }}</div>
+                    <div class="user-role">{{ userRole }}</div>
+                </div>
+                <i class="bi bi-chevron-down" style="color: var(--gray-500);"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main" :class="{ 'with-sidebar-icon': sidebarIconMode }">
+        {{ content }}
+    </main>
+</div>

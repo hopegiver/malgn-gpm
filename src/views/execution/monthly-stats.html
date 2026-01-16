@@ -1,0 +1,244 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">월간 통계</h1>
+        <p class="page-subtitle">{{ currentMonthText }} - 월간 업무 실행 통계를 분석하세요</p>
+    </div>
+
+    <!-- Month Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-secondary" @click="previousMonth">
+            <i class="bi bi-chevron-left"></i> 이전 달
+        </button>
+        <button class="btn btn-primary" @click="goToCurrentMonth">
+            <i class="bi bi-calendar-month"></i> 이번 달
+        </button>
+        <button class="btn btn-outline-secondary" @click="nextMonth">
+            다음 달 <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Monthly Stats Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">총 업무</div>
+                <div class="fw-bold" style="font-size: 2rem;">{{ monthlyStats.total }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-calendar-day"></i> 일평균 {{ monthlyStats.avgDaily }}개
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">완료</div>
+                <div class="fw-bold text-success" style="font-size: 2rem;">{{ monthlyStats.completed }}</div>
+                <div class="text-success mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-check-circle"></i> {{ monthlyStats.completionRate }}%
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">총 투입 시간</div>
+                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ monthlyStats.totalHours }}h</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-clock"></i> 일평균 {{ monthlyStats.avgHoursDaily }}h
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4">
+                <div class="text-secondary fw-medium mb-2">시간 효율성</div>
+                <div class="fw-bold" :class="monthlyStats.efficiency >= 100 ? 'text-success' : 'text-warning'"
+                     style="font-size: 2rem;">{{ monthlyStats.efficiency }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-speedometer2"></i> 예상 대비
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Weekly Trend Chart -->
+        <div class="col-12 col-lg-8">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-graph-up text-primary"></i> 주차별 완료율 추이
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.875rem;">주간 업무 완료율 변화</p>
+                </div>
+                <canvas ref="weeklyTrendChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Priority Distribution -->
+        <div class="col-12 col-lg-4">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-pie-chart text-danger"></i> 우선순위별 분포
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.875rem;">업무 우선순위 현황</p>
+                </div>
+                <canvas ref="priorityChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Goal Time Distribution -->
+        <div class="col-12 col-lg-6">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-bullseye text-success"></i> 목표별 시간 투입
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.875rem;">개인 목표별 시간 분포</p>
+                </div>
+                <canvas ref="goalTimeChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Estimated vs Actual Time -->
+        <div class="col-12 col-lg-6">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h5 class="chart-title">
+                        <i class="bi bi-bar-chart-line text-warning"></i> 예상 vs 실제 시간
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.875rem;">주차별 시간 비교</p>
+                </div>
+                <canvas ref="timeComparisonChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics Tables -->
+    <div class="row g-4">
+        <!-- Weekly Breakdown -->
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-calendar-week text-primary"></i> 주차별 상세
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="text-secondary" style="font-size: 0.875rem;">
+                                    <th>주차</th>
+                                    <th class="text-center">업무</th>
+                                    <th class="text-center">완료</th>
+                                    <th class="text-center">완료율</th>
+                                    <th class="text-end">시간</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="week in weeklyBreakdown" :key="week.week">
+                                    <td class="fw-medium">{{ week.weekLabel }}</td>
+                                    <td class="text-center">{{ week.total }}</td>
+                                    <td class="text-center text-success">{{ week.completed }}</td>
+                                    <td class="text-center">
+                                        <span class="badge" :class="week.completionRate >= 70 ? 'bg-success' : week.completionRate >= 40 ? 'bg-warning' : 'bg-danger'">
+                                            {{ week.completionRate }}%
+                                        </span>
+                                    </td>
+                                    <td class="text-end">{{ week.hours }}h</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goal Performance -->
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-trophy text-warning"></i> 목표별 성과
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="text-secondary" style="font-size: 0.875rem;">
+                                    <th>목표</th>
+                                    <th class="text-center">업무</th>
+                                    <th class="text-center">완료율</th>
+                                    <th class="text-end">시간</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="goal in goalPerformance" :key="goal.name">
+                                    <td class="fw-medium" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        {{ goal.name }}
+                                    </td>
+                                    <td class="text-center">{{ goal.count }}</td>
+                                    <td class="text-center">
+                                        <span class="badge" :class="goal.completionRate >= 70 ? 'bg-success' : goal.completionRate >= 40 ? 'bg-warning' : 'bg-danger'">
+                                            {{ goal.completionRate }}%
+                                        </span>
+                                    </td>
+                                    <td class="text-end">{{ goal.hours }}h</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb"></i> 이번 달 인사이트
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                <div>
+                                    <div class="fw-medium mb-1">최고 생산성 주차</div>
+                                    <div class="text-secondary" style="font-size: 0.875rem;">
+                                        {{ insights.bestWeek }} ({{ insights.bestWeekRate }}% 완료)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-clock-fill text-primary fs-5"></i>
+                                <div>
+                                    <div class="fw-medium mb-1">가장 많은 시간 투입</div>
+                                    <div class="text-secondary" style="font-size: 0.875rem;">
+                                        {{ insights.topGoal }} ({{ insights.topGoalHours }}시간)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-speedometer2 text-warning fs-5"></i>
+                                <div>
+                                    <div class="fw-medium mb-1">시간 효율성</div>
+                                    <div class="text-secondary" style="font-size: 0.875rem;">
+                                        {{ insights.efficiencyText }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

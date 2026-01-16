@@ -1,0 +1,208 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">나의 성장 맵</h1>
+        <p class="page-subtitle">역량 현황과 성장 목표를 관리하세요</p>
+    </div>
+
+    <!-- Overall Progress -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">전체 역량 평균</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ overallAverage }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">/ 5.0</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">목표 달성률</div>
+                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ goalAchievementRate }}%</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">{{ achievedCompetencies }}/{{ totalCompetencies }} 역량</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">가장 성장한 역량</div>
+                <div class="fw-bold" style="font-size: 1.2rem;">{{ topGrowthCompetency }}</div>
+                <div class="text-success mt-2" style="font-size: 0.875rem;">
+                    <i class="bi bi-arrow-up"></i> +{{ topGrowthValue }}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">개선 필요 역량</div>
+                <div class="fw-bold text-warning" style="font-size: 1.2rem;">{{ weakestCompetency }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">현재 {{ weakestValue }}/5.0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competency Radar Chart -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-radar text-primary"></i> 역량 현황 맵
+                    </h5>
+                    <p class="text-secondary mb-4" style="font-size: 0.875rem;">현재 레벨과 목표 레벨 비교</p>
+                    <canvas ref="radarChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up text-success"></i> 성장 추이
+                    </h5>
+                    <p class="text-secondary mb-4" style="font-size: 0.875rem;">최근 6개월간 역량 변화</p>
+                    <canvas ref="trendChart" style="max-height: 350px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competency Categories -->
+    <div class="row g-4">
+        <div v-for="category in competencyCategories" :key="category.id" class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i :class="category.icon" :style="{ color: category.color }"></i>
+                            {{ category.name }}
+                        </h5>
+                        <span class="badge" :style="{ backgroundColor: category.color }">
+                            평균 {{ category.average }}/5.0
+                        </span>
+                    </div>
+
+                    <div v-for="competency in category.competencies" :key="competency.id" class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="flex-grow-1">
+                                <div class="fw-medium mb-1">{{ competency.name }}</div>
+                                <div class="text-secondary" style="font-size: 0.875rem;">{{ competency.description }}</div>
+                            </div>
+                            <div class="text-end ms-3" style="min-width: 120px;">
+                                <span class="fw-bold" style="font-size: 1.1rem;">{{ competency.current }}</span>
+                                <span class="text-secondary"> / {{ competency.target }}</span>
+                                <div class="text-secondary" style="font-size: 0.75rem;">목표</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="position-relative mb-2" style="height: 8px; background: #e5e7eb; border-radius: 4px;">
+                            <div class="position-absolute top-0 start-0 h-100 rounded"
+                                 :style="{
+                                     width: (competency.current / 5 * 100) + '%',
+                                     backgroundColor: category.color
+                                 }"></div>
+                            <div class="position-absolute top-0 start-0 h-100"
+                                 :style="{
+                                     width: (competency.target / 5 * 100) + '%',
+                                     borderRight: '2px dashed ' + category.color
+                                 }"></div>
+                        </div>
+
+                        <!-- Action Plans -->
+                        <div v-if="competency.actionPlans && competency.actionPlans.length > 0" class="mt-2">
+                            <div class="text-secondary fw-medium mb-2" style="font-size: 0.875rem;">
+                                <i class="bi bi-list-task"></i> 액션 플랜
+                            </div>
+                            <div v-for="(plan, index) in competency.actionPlans" :key="index"
+                                 class="d-flex align-items-start gap-2 mb-2 ps-3">
+                                <input type="checkbox" class="form-check-input mt-1"
+                                       :checked="plan.completed"
+                                       @change="toggleActionPlan(category.id, competency.id, index)">
+                                <span class="text-secondary" style="font-size: 0.875rem;"
+                                      :class="{ 'text-decoration-line-through': plan.completed }">
+                                    {{ plan.action }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Add Action Plan -->
+                        <div v-if="competency.showAddForm" class="mt-3 p-3 bg-light rounded">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="새로운 액션 플랜 입력"
+                                       v-model="newActionPlan[competency.id]"
+                                       @keyup.enter="addActionPlan(category.id, competency.id)">
+                                <button class="btn btn-primary" @click="addActionPlan(category.id, competency.id)">
+                                    <i class="bi bi-plus"></i> 추가
+                                </button>
+                                <button class="btn btn-outline-secondary" @click="competency.showAddForm = false">
+                                    취소
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-sm btn-outline-primary" @click="competency.showAddForm = !competency.showAddForm">
+                                <i class="bi bi-plus"></i> 액션 플랜 추가
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" @click="openLevelUpdateModal(category.id, competency.id)">
+                                <i class="bi bi-arrow-up-circle"></i> 레벨 업데이트
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Update Modal -->
+    <div v-if="showLevelModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeLevelModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">역량 레벨 업데이트</h5>
+                    <button type="button" class="btn-close" @click="closeLevelModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ selectedCompetency?.name }}</label>
+                        <p class="text-secondary" style="font-size: 0.875rem;">{{ selectedCompetency?.description }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">현재 레벨</label>
+                        <div class="d-flex gap-2">
+                            <button v-for="level in [1, 2, 3, 4, 5]" :key="'current-' + level"
+                                    class="btn flex-grow-1"
+                                    :class="levelUpdateForm.current === level ? 'btn-primary' : 'btn-outline-secondary'"
+                                    @click="levelUpdateForm.current = level">
+                                {{ level }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">목표 레벨</label>
+                        <div class="d-flex gap-2">
+                            <button v-for="level in [1, 2, 3, 4, 5]" :key="'target-' + level"
+                                    class="btn flex-grow-1"
+                                    :class="levelUpdateForm.target === level ? 'btn-success' : 'btn-outline-secondary'"
+                                    @click="levelUpdateForm.target = level">
+                                {{ level }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">변경 사유 (선택)</label>
+                        <textarea class="form-control" rows="3" v-model="levelUpdateForm.reason"
+                                  placeholder="레벨 변경 이유를 입력하세요 (예: 프로젝트 완료, 교육 이수 등)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeLevelModal">취소</button>
+                    <button type="button" class="btn btn-primary" @click="updateCompetencyLevel">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -67,7 +67,11 @@ export default {
             if (!this.todayDate) return '오늘';
             const month = this.todayDate.getMonth() + 1;
             const day = this.todayDate.getDate();
-            return `오늘 (${month}월 ${day}일)`;
+            if (this.isToday) {
+                return `오늘 (${month}월 ${day}일)`;
+            } else {
+                return `${month}월 ${day}일`;
+            }
         },
         filteredTasks() {
             let filtered = [];

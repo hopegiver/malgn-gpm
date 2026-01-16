@@ -1,8 +1,15 @@
 <div>
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">오늘의 업무</h1>
-        <p class="page-subtitle">{{ selectedDateText }} - 오늘 하루의 업무를 기록하고 관리하세요.</p>
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="page-title">오늘의 업무</h1>
+                <p class="page-subtitle">{{ selectedDateText }} - 오늘 하루의 업무를 기록하고 관리하세요.</p>
+            </div>
+            <button v-if="!isToday" class="btn btn-primary" @click="goToToday" style="white-space: nowrap;">
+                <i class="bi bi-calendar-check"></i> 오늘로 바로가기
+            </button>
+        </div>
     </div>
 
     <!-- Date Navigation -->

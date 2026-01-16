@@ -14,12 +14,14 @@ export default {
                 goalId: '',
                 krId: null,  // KR 선택 (선택적)
                 priority: 'Medium',
-                estimatedTime: 1,
+                estimatedTime: 0,
                 description: ''  // 상세 내역 (선택적)
             },
             availableKRs: [],  // 선택한 목표의 KR 목록
             expandedTasks: [],  // 확장된 업무 ID 목록
-            editingDescription: {},  // 편집 중인 상세 내역 {taskId: description}
+            editingTaskId: null,  // 편집 중인 업무 ID
+            editingTask: {},  // 편집 중인 업무 데이터
+            editingAvailableKRs: [],  // 편집 중 선택한 목표의 KR 목록
             stats: {
                 plannedHours: 0,
                 executedHours: 0,
@@ -416,7 +418,7 @@ export default {
                 goalId: '',
                 krId: null,
                 priority: 'Medium',
-                estimatedTime: 1,
+                estimatedTime: 0,
                 description: ''
             };
             this.availableKRs = [];
@@ -467,9 +469,79 @@ export default {
             // TODO: 타이머 기능 구현
         },
 
-        editTask(taskId) {
-            alert(`업무 수정 (ID: ${taskId})\n(기능 구현 예정)`);
-            // TODO: 수정 기능 구현
+        // 업무 수정 시작
+        startEditTask(taskId) {
+            const task = this.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            this.editingTaskId = taskId;
+            this.editingTask = {
+                title: task.title,
+                goalId: task.goalId || '',
+                krId: task.krId || null,
+                priority: task.priority,
+                estimatedTime: task.estimatedTime
+            };
+
+            // 목표에 따른 KR 목록 로드
+            if (this.editingTask.goalId) {
+                const goal = this.goals.find(g => g.id === this.editingTask.goalId);
+                this.editingAvailableKRs = goal ? goal.keyResults : [];
+            } else {
+                this.editingAvailableKRs = [];
+            }
+        },
+
+        // 수정 중 목표 변경 시
+        onEditGoalChange() {
+            if (this.editingTask.goalId) {
+                const goal = this.goals.find(g => g.id === this.editingTask.goalId);
+                this.editingAvailableKRs = goal ? goal.keyResults : [];
+            } else {
+                this.editingAvailableKRs = [];
+            }
+            this.editingTask.krId = null;
+        },
+
+        // 업무 수정 저장
+        saveEditTask(taskId) {
+            const task = this.tasks.find(t => t.id === taskId);
+            if (!task || !this.editingTask.title.trim()) return;
+
+            // 목표 정보 업데이트
+            const goal = this.goals.find(g => g.id === this.editingTask.goalId);
+            let krName = null;
+            if (this.editingTask.krId && goal) {
+                const kr = goal.keyResults.find(k => k.id === this.editingTask.krId);
+                krName = kr ? kr.title : null;
+            }
+
+            // 업무 정보 업데이트
+            task.title = this.editingTask.title;
+            task.goalId = this.editingTask.goalId || null;
+            task.goalName = goal ? goal.title : null;
+            task.krId = this.editingTask.krId || null;
+            task.krName = krName;
+            task.priority = this.editingTask.priority;
+            task.estimatedTime = this.editingTask.estimatedTime || 0;
+
+            this.calculateStats();
+            this.updateGoalChart();
+
+            // 편집 모드 종료
+            this.editingTaskId = null;
+            this.editingTask = {};
+            this.editingAvailableKRs = [];
+
+            // TODO: API 호출로 업데이트
+            // await this.$api.patch(`/api/tasks/${taskId}`, task);
+        },
+
+        // 업무 수정 취소
+        cancelEditTask() {
+            this.editingTaskId = null;
+            this.editingTask = {};
+            this.editingAvailableKRs = [];
         },
 
         deleteTask(taskId) {
@@ -573,11 +645,11 @@ export default {
         getPriorityText(priority) {
             switch (priority) {
                 case 'High':
-                    return '높음';
+                    return '높은 우선순위';
                 case 'Medium':
-                    return '보통';
+                    return '보통 우선순위';
                 case 'Low':
-                    return '낮음';
+                    return '낮은 우선순위';
                 default:
                     return priority;
             }
@@ -650,8 +722,6 @@ export default {
             const index = this.expandedTasks.indexOf(taskId);
             if (index > -1) {
                 this.expandedTasks.splice(index, 1);
-                // 축소할 때 편집 상태도 취소
-                delete this.editingDescription[taskId];
             } else {
                 this.expandedTasks.push(taskId);
             }
@@ -661,34 +731,15 @@ export default {
             return this.expandedTasks.includes(taskId);
         },
 
-        // 상세 내역 편집
-        startEditDescription(taskId) {
+        // 상세 내역 저장
+        saveDescription(taskId) {
+            // task.description은 v-model로 이미 업데이트되어 있음
+            // TODO: API 호출로 업데이트
             const task = this.tasks.find(t => t.id === taskId);
             if (task) {
-                this.editingDescription = {
-                    ...this.editingDescription,
-                    [taskId]: task.description || ''
-                };
-            }
-        },
-
-        saveDescription(taskId) {
-            const task = this.tasks.find(t => t.id === taskId);
-            if (task && this.editingDescription.hasOwnProperty(taskId)) {
-                task.description = this.editingDescription[taskId];
-                delete this.editingDescription[taskId];
-
-                // TODO: API 호출로 업데이트
                 // await this.$api.patch(`/api/tasks/${taskId}`, { description: task.description });
+                alert('상세 내역이 저장되었습니다.');
             }
-        },
-
-        cancelEditDescription(taskId) {
-            delete this.editingDescription[taskId];
-        },
-
-        isEditingDescription(taskId) {
-            return this.editingDescription.hasOwnProperty(taskId);
         }
     }
 };

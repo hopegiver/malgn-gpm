@@ -96,27 +96,27 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <select class="form-select" v-model="newTask.priority">
-                                    <option value="High">높음</option>
-                                    <option value="Medium" selected>보통</option>
-                                    <option value="Low">낮음</option>
+                                    <option value="High">높은 우선순위</option>
+                                    <option value="Medium" selected>보통 우선순위</option>
+                                    <option value="Low">낮은 우선순위</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <input
                                     type="number"
                                     class="form-control"
-                                    placeholder="예상 시간"
+                                    placeholder="시간(h)"
                                     v-model.number="newTask.estimatedTime"
-                                    min="0.5"
+                                    min="0"
                                     step="0.5"
-                                    required
+                                    style="font-size: 0.875rem;"
                                 >
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <button type="submit" class="btn btn-primary w-100">
-                                    <i class="bi bi-plus"></i> 추가
+                                    <i class="bi bi-plus"></i>
                                 </button>
                             </div>
                         </div>
@@ -187,52 +187,113 @@
 
                         <!-- Task Content -->
                         <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="flex-grow-1">
-                                    <div class="fw-bold mb-1" :class="{ 'text-decoration-line-through text-secondary': task.completed }">
-                                        {{ task.title }}
+                            <!-- View Mode -->
+                            <div v-if="editingTaskId !== task.id">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold mb-1" :class="{ 'text-decoration-line-through text-secondary': task.completed }">
+                                            {{ task.title }}
+                                        </div>
+                                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                                            <span class="badge" :class="getPriorityClass(task.priority)">
+                                                {{ getPriorityText(task.priority) }}
+                                            </span>
+                                            <span v-if="task.goalName" class="text-secondary" style="font-size: 0.875rem;">
+                                                <i class="bi bi-bullseye"></i> {{ task.goalName }}
+                                            </span>
+                                            <span v-if="task.krName" class="badge bg-info text-white" style="font-size: 0.75rem;">
+                                                KR: {{ task.krName }}
+                                            </span>
+                                            <span v-if="task.estimatedTime > 0" class="text-secondary" style="font-size: 0.875rem;">
+                                                <i class="bi bi-clock"></i> {{ task.estimatedTime }}h
+                                            </span>
+                                            <span v-if="task.actualTime" class="text-primary fw-medium" style="font-size: 0.875rem;">
+                                                <i class="bi bi-check-circle"></i> 실제 {{ task.actualTime }}h
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="d-flex gap-2 align-items-center flex-wrap">
-                                        <span class="badge" :class="getPriorityClass(task.priority)">
-                                            {{ getPriorityText(task.priority) }}
-                                        </span>
-                                        <span v-if="task.goalName" class="text-secondary" style="font-size: 0.875rem;">
-                                            <i class="bi bi-bullseye"></i> {{ task.goalName }}
-                                        </span>
-                                        <span v-if="task.krName" class="badge bg-info text-white" style="font-size: 0.75rem;">
-                                            KR: {{ task.krName }}
-                                        </span>
-                                        <span class="text-secondary" style="font-size: 0.875rem;">
-                                            <i class="bi bi-clock"></i> {{ task.estimatedTime }}h
-                                        </span>
-                                        <span v-if="task.actualTime" class="text-primary fw-medium" style="font-size: 0.875rem;">
-                                            <i class="bi bi-check-circle"></i> 실제 {{ task.actualTime }}h
-                                        </span>
-                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary ms-2"
+                                        @click="toggleTaskExpansion(task.id)"
+                                        title="상세 내역 보기"
+                                    >
+                                        <i class="bi" :class="isTaskExpanded(task.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                    </button>
                                 </div>
-                                <button
-                                    class="btn btn-sm btn-outline-secondary ms-2"
-                                    @click="toggleTaskExpansion(task.id)"
-                                    title="상세 내역 보기"
-                                >
-                                    <i class="bi" :class="isTaskExpanded(task.id) ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
-                                </button>
                             </div>
 
-                            <!-- Time Tracking -->
+                            <!-- Edit Mode -->
+                            <div v-if="editingTaskId === task.id" class="mb-2">
+                                <input
+                                    type="text"
+                                    class="form-control mb-2"
+                                    v-model="editingTask.title"
+                                    placeholder="업무 제목"
+                                >
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <select class="form-select form-select-sm" v-model="editingTask.goalId" @change="onEditGoalChange">
+                                            <option value="">목표 선택 (선택)</option>
+                                            <option v-for="goal in goals" :key="goal.id" :value="goal.id">
+                                                {{ goal.title }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select form-select-sm" v-model="editingTask.krId" :disabled="!editingTask.goalId || editingAvailableKRs.length === 0">
+                                            <option :value="null">KR 선택 (선택)</option>
+                                            <option v-for="kr in editingAvailableKRs" :key="kr.id" :value="kr.id">
+                                                {{ kr.title }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select form-select-sm" v-model="editingTask.priority">
+                                            <option value="High">높은 우선순위</option>
+                                            <option value="Medium">보통 우선순위</option>
+                                            <option value="Low">낮은 우선순위</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <input
+                                            type="number"
+                                            class="form-control form-control-sm"
+                                            placeholder="시간"
+                                            v-model.number="editingTask.estimatedTime"
+                                            min="0"
+                                            step="0.5"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Time Tracking / Edit Buttons -->
                             <div v-if="!task.completed" class="d-flex gap-2 mt-3">
-                                <button class="btn btn-sm btn-outline-primary" @click="startTimer(task.id)">
-                                    <i class="bi bi-play-fill"></i> 시작
-                                </button>
-                                <button class="btn btn-sm btn-outline-success" @click="completeTask(task.id)">
-                                    <i class="bi bi-check-circle"></i> 완료
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" @click="editTask(task.id)">
-                                    <i class="bi bi-pencil"></i> 수정
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)">
-                                    <i class="bi bi-trash"></i> 삭제
-                                </button>
+                                <!-- Normal Mode Buttons -->
+                                <template v-if="editingTaskId !== task.id">
+                                    <button class="btn btn-sm btn-outline-primary" @click="startTimer(task.id)">
+                                        <i class="bi bi-play-fill"></i> 시작
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" @click="completeTask(task.id)">
+                                        <i class="bi bi-check-circle"></i> 완료
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" @click="startEditTask(task.id)">
+                                        <i class="bi bi-pencil"></i> 수정
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)">
+                                        <i class="bi bi-trash"></i> 삭제
+                                    </button>
+                                </template>
+
+                                <!-- Edit Mode Buttons -->
+                                <template v-if="editingTaskId === task.id">
+                                    <button class="btn btn-sm btn-primary" @click="saveEditTask(task.id)">
+                                        <i class="bi bi-check-circle"></i> 저장
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" @click="cancelEditTask">
+                                        <i class="bi bi-x-circle"></i> 취소
+                                    </button>
+                                </template>
                             </div>
 
                             <!-- Completion Info -->
@@ -242,59 +303,24 @@
 
                             <!-- Expanded Description Section -->
                             <div v-if="isTaskExpanded(task.id)" class="mt-3 pt-3" style="border-top: 1px solid var(--gray-200);">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold mb-0" style="font-size: 0.875rem;">
-                                        <i class="bi bi-file-text text-primary"></i> 상세 내역
-                                    </h6>
-                                    <button
-                                        v-if="!isEditingDescription(task.id) && !task.completed"
-                                        class="btn btn-sm btn-outline-primary"
-                                        @click="startEditDescription(task.id)"
-                                    >
-                                        <i class="bi bi-pencil"></i> 편집
-                                    </button>
-                                </div>
-
-                                <!-- View Mode -->
-                                <div v-if="!isEditingDescription(task.id)">
-                                    <div
-                                        v-if="task.description"
-                                        class="p-3 rounded"
-                                        style="background: var(--gray-50); white-space: pre-wrap; font-size: 0.875rem; line-height: 1.6;"
-                                    >{{ task.description }}</div>
-                                    <div
-                                        v-else
-                                        class="text-secondary text-center py-3"
-                                        style="font-size: 0.875rem;"
-                                    >
-                                        <i class="bi bi-inbox"></i> 작성된 상세 내역이 없습니다.
-                                    </div>
-                                </div>
-
-                                <!-- Edit Mode -->
-                                <div v-if="isEditingDescription(task.id)">
-                                    <textarea
-                                        class="form-control mb-2"
-                                        v-model="editingDescription[task.id]"
-                                        rows="5"
-                                        placeholder="업무의 세부 내용을 자유롭게 작성하세요&#10;- 할 일 목록&#10;- 주요 내용&#10;- 참고 사항 등"
-                                        style="font-size: 0.875rem;"
-                                    ></textarea>
-                                    <div class="d-flex gap-2">
-                                        <button
-                                            class="btn btn-sm btn-primary"
-                                            @click="saveDescription(task.id)"
-                                        >
-                                            <i class="bi bi-check-circle"></i> 저장
-                                        </button>
-                                        <button
-                                            class="btn btn-sm btn-outline-secondary"
-                                            @click="cancelEditDescription(task.id)"
-                                        >
-                                            <i class="bi bi-x-circle"></i> 취소
-                                        </button>
-                                    </div>
-                                </div>
+                                <h6 class="fw-bold mb-2" style="font-size: 0.875rem;">
+                                    <i class="bi bi-file-text text-primary"></i> 상세 내역
+                                </h6>
+                                <textarea
+                                    class="form-control mb-2"
+                                    v-model="task.description"
+                                    rows="5"
+                                    placeholder="업무의 세부 내용을 자유롭게 작성하세요&#10;- 할 일 목록&#10;- 주요 내용&#10;- 참고 사항 등"
+                                    style="font-size: 0.875rem;"
+                                    :disabled="task.completed"
+                                ></textarea>
+                                <button
+                                    v-if="!task.completed"
+                                    class="btn btn-sm btn-primary"
+                                    @click="saveDescription(task.id)"
+                                >
+                                    <i class="bi bi-check-circle"></i> 저장
+                                </button>
                             </div>
                         </div>
                     </div>

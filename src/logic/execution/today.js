@@ -64,12 +64,17 @@ export default {
             return `${month}월 ${day}일`;
         },
         todayButtonText() {
-            if (!this.todayDate) return '오늘';
-            const month = this.todayDate.getMonth() + 1;
-            const day = this.todayDate.getDate();
             if (this.isToday) {
+                // 오늘 날짜를 보고 있을 때
+                if (!this.todayDate) return '오늘';
+                const month = this.todayDate.getMonth() + 1;
+                const day = this.todayDate.getDate();
                 return `오늘 (${month}월 ${day}일)`;
             } else {
+                // 과거 날짜를 보고 있을 때 - 선택된 날짜 표시
+                if (!this.selectedDate) return '';
+                const month = this.selectedDate.getMonth() + 1;
+                const day = this.selectedDate.getDate();
                 return `${month}월 ${day}일`;
             }
         },

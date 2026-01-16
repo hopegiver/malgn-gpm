@@ -1,5 +1,5 @@
 export default {
-    layout: 'employee',
+    layout: 'default',
     data() {
         return {
             userName: '',
@@ -266,6 +266,12 @@ export default {
             if (value >= 70) return 'green';
             if (value >= 40) return 'yellow';
             return 'red';
+        },
+
+        getBootstrapSignalClass(value) {
+            if (value >= 70) return 'success';
+            if (value >= 40) return 'warning';
+            return 'danger';
         },
 
         getPriorityClass(priority) {

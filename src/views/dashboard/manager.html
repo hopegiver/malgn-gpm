@@ -1,0 +1,304 @@
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="display-6 fw-bold mb-2">팀 관리 대시보드</h1>
+        <p class="text-secondary fs-6 mb-0">{{ teamName }} 팀의 성과를 관리하고 팀원들을 지원하세요.</p>
+    </div>
+
+    <!-- Team Performance Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">팀 목표 달성률</div>
+                            <div class="fs-1 fw-bold">{{ stats.teamGoalAchievement }}%</div>
+                        </div>
+                        <div class="stat-icon primary rounded-3">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(stats.teamGoalAchievement)"
+                             role="progressbar" :style="{ width: stats.teamGoalAchievement + '%' }"
+                             :aria-valuenow="stats.teamGoalAchievement" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="small" :class="stats.teamTrend >= 0 ? 'text-success' : 'text-danger'">
+                        <i class="bi" :class="stats.teamTrend >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
+                        {{ Math.abs(stats.teamTrend) }}% 지난 달 대비
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">팀원 수</div>
+                            <div class="fs-1 fw-bold">{{ stats.teamMemberCount }}</div>
+                        </div>
+                        <div class="stat-icon success rounded-3">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                    </div>
+                    <div class="text-secondary small">
+                        평균 성과: {{ stats.avgPerformance }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">진행 중인 목표</div>
+                            <div class="fs-1 fw-bold">{{ stats.activeGoals }}</div>
+                        </div>
+                        <div class="stat-icon growth rounded-3">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+                    </div>
+                    <div class="text-secondary small">
+                        완료: {{ stats.completedGoals }}개
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">대기 중인 피드백</div>
+                            <div class="fs-1 fw-bold text-warning">{{ stats.pendingFeedback }}</div>
+                        </div>
+                        <div class="stat-icon warning rounded-3">
+                            <i class="bi bi-chat-left-dots-fill"></i>
+                        </div>
+                    </div>
+                    <div class="text-secondary small">
+                        이번 주 {{ stats.givenFeedback }}개 제공
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-12 col-lg-8">
+            <!-- Team Members Performance -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-person-badge text-primary"></i> 팀원 성과 현황
+                        </h5>
+                        <a href="#/team/members" class="text-primary fw-medium small">
+                            전체 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">이름</th>
+                                    <th class="border-0">직급</th>
+                                    <th class="border-0">목표 달성률</th>
+                                    <th class="border-0">이번 주 업무</th>
+                                    <th class="border-0">상태</th>
+                                    <th class="border-0 text-center">액션</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="member in teamMembers" :key="member.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="user-avatar flex-shrink-0" style="width: 36px; height: 36px;">
+                                                <span class="small">{{ member.initial }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ member.name }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-secondary small">{{ member.position }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 80px;">
+                                                <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(member.goalAchievement)"
+                                                     role="progressbar" :style="{ width: member.goalAchievement + '%' }"></div>
+                                            </div>
+                                            <span class="small fw-semibold" style="min-width: 40px;">{{ member.goalAchievement }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="small">{{ member.weeklyTasks }}/{{ member.totalTasks }}</td>
+                                    <td>
+                                        <span class="badge" :class="'bg-' + member.statusClass">
+                                            {{ member.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary" @click="viewMemberDetail(member.id)"
+                                                    title="상세보기">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success" @click="giveFeedback(member.id)"
+                                                    title="피드백">
+                                                <i class="bi bi-chat"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Goals Progress -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-flag text-primary"></i> 팀 목표 진행 상황
+                        </h5>
+                    </div>
+
+                    <div v-for="goal in teamGoals" :key="goal.id" class="card border mb-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">{{ goal.title }}</h6>
+                                    <p class="text-secondary small mb-0">{{ goal.description }}</p>
+                                </div>
+                                <span class="badge ms-2 flex-shrink-0"
+                                      :class="'bg-' + getBootstrapSignalClass(goal.achievement)">
+                                    {{ goal.achievement }}%
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">진행률</span>
+                                    <span class="fw-semibold">{{ goal.achievement }}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(goal.achievement)"
+                                         role="progressbar" :style="{ width: goal.achievement + '%' }"
+                                         :aria-valuenow="goal.achievement" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-secondary small">
+                                    <i class="bi bi-calendar me-1"></i> 목표일: {{ goal.dueDate }}
+                                </div>
+                                <div class="text-secondary small">
+                                    <i class="bi bi-person me-1"></i> 담당: {{ goal.owner }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Performance Chart -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-bar-chart text-primary"></i> 월별 팀 성과 추이
+                    </h5>
+                    <canvas ref="performanceChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-12 col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightning-fill text-warning"></i> 빠른 작업
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="#/team/goals/new" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>팀 목표 추가
+                        </a>
+                        <a href="#/team/feedback/new" class="btn btn-outline-primary">
+                            <i class="bi bi-chat-left-text me-2"></i>피드백 작성
+                        </a>
+                        <a href="#/team/report/weekly" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-text me-2"></i>주간 리포트
+                        </a>
+                        <a href="#/team/1on1" class="btn btn-outline-primary">
+                            <i class="bi bi-person-video2 me-2"></i>1:1 미팅 예약
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Approvals -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-clipboard-check text-success"></i> 승인 대기
+                        </h5>
+                        <span class="badge bg-warning">{{ pendingApprovals.length }}</span>
+                    </div>
+
+                    <div v-if="pendingApprovals.length === 0" class="text-center py-4 text-secondary">
+                        <i class="bi bi-check-circle fs-1"></i>
+                        <p class="mt-2 mb-0 small">승인 대기 중인 항목이 없습니다.</p>
+                    </div>
+
+                    <div v-else class="list-group list-group-flush">
+                        <div v-for="approval in pendingApprovals" :key="approval.id"
+                             class="list-group-item px-0 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium small">{{ approval.title }}</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        {{ approval.requester }} • {{ approval.date }}
+                                    </div>
+                                </div>
+                                <span class="badge bg-warning flex-shrink-0">{{ approval.type }}</span>
+                            </div>
+                            <div class="btn-group btn-group-sm w-100" role="group">
+                                <button type="button" class="btn btn-outline-success" @click="approveRequest(approval.id)">
+                                    <i class="bi bi-check"></i> 승인
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" @click="rejectRequest(approval.id)">
+                                    <i class="bi bi-x"></i> 거절
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Competency Radar -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-pentagon text-success"></i> 팀 역량 분석
+                    </h5>
+                    <canvas ref="competencyChart" style="max-height: 250px;"></canvas>
+                    <div class="text-center mt-3">
+                        <a href="#/team/competency" class="btn btn-sm btn-outline-primary">
+                            상세 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

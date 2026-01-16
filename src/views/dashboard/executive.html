@@ -1,0 +1,322 @@
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="display-6 fw-bold mb-2">경영 대시보드</h1>
+        <p class="text-secondary fs-6 mb-0">전사 성과 지표와 주요 경영 메트릭을 한눈에 확인하세요.</p>
+    </div>
+
+    <!-- Company-wide KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">전사 목표 달성률</div>
+                            <div class="fs-1 fw-bold">{{ stats.companyGoalAchievement }}%</div>
+                        </div>
+                        <div class="stat-icon primary rounded-3">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(stats.companyGoalAchievement)"
+                             role="progressbar" :style="{ width: stats.companyGoalAchievement + '%' }"
+                             :aria-valuenow="stats.companyGoalAchievement" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="small" :class="stats.companyTrend >= 0 ? 'text-success' : 'text-danger'">
+                        <i class="bi" :class="stats.companyTrend >= 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
+                        {{ Math.abs(stats.companyTrend) }}% YoY 성장
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">전체 임직원</div>
+                            <div class="fs-1 fw-bold">{{ stats.totalEmployees }}</div>
+                        </div>
+                        <div class="stat-icon success rounded-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                    <div class="text-secondary small">
+                        평균 재직기간: {{ stats.avgTenure }}년
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">직원 만족도</div>
+                            <div class="fs-1 fw-bold">{{ stats.employeeSatisfaction }}<span class="fs-4 text-secondary">/5.0</span></div>
+                        </div>
+                        <div class="stat-icon growth rounded-3">
+                            <i class="bi bi-emoji-smile"></i>
+                        </div>
+                    </div>
+                    <div class="text-secondary small">
+                        응답률: {{ stats.surveyResponse }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="text-secondary fw-medium small">이직률</div>
+                            <div class="fs-1 fw-bold">{{ stats.turnoverRate }}%</div>
+                        </div>
+                        <div class="stat-icon warning rounded-3">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="small" :class="stats.turnoverTrend <= 0 ? 'text-success' : 'text-danger'">
+                        <i class="bi" :class="stats.turnoverTrend <= 0 ? 'bi-arrow-down' : 'bi-arrow-up'"></i>
+                        {{ Math.abs(stats.turnoverTrend) }}% 전년 대비
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-12 col-lg-8">
+            <!-- Department Performance -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-diagram-3 text-primary"></i> 부서별 성과
+                        </h5>
+                        <a href="#/executive/departments" class="text-primary fw-medium small">
+                            전체 보기 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">부서</th>
+                                    <th class="border-0">부서장</th>
+                                    <th class="border-0">목표 달성률</th>
+                                    <th class="border-0">인원</th>
+                                    <th class="border-0">평균 성과</th>
+                                    <th class="border-0">상태</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="dept in departments" :key="dept.id">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle flex-shrink-0"
+                                                 :style="{ width: '12px', height: '12px', backgroundColor: dept.color }"></div>
+                                            <span class="fw-medium">{{ dept.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-secondary small">{{ dept.head }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 100px;">
+                                                <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(dept.achievement)"
+                                                     role="progressbar" :style="{ width: dept.achievement + '%' }"></div>
+                                            </div>
+                                            <span class="small fw-semibold" style="min-width: 40px;">{{ dept.achievement }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="small">{{ dept.memberCount }}명</td>
+                                    <td class="small">{{ dept.avgPerformance }}%</td>
+                                    <td>
+                                        <span class="badge" :class="'bg-' + dept.statusClass">
+                                            {{ dept.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategic Goals -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-trophy text-primary"></i> 전략 목표
+                        </h5>
+                    </div>
+
+                    <div v-for="goal in strategicGoals" :key="goal.id" class="card border mb-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h6 class="fw-bold mb-0">{{ goal.title }}</h6>
+                                        <span class="badge bg-secondary small">{{ goal.category }}</span>
+                                    </div>
+                                    <p class="text-secondary small mb-0">{{ goal.description }}</p>
+                                </div>
+                                <span class="badge ms-2 flex-shrink-0"
+                                      :class="'bg-' + getBootstrapSignalClass(goal.achievement)">
+                                    {{ goal.achievement }}%
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(goal.achievement)"
+                                         role="progressbar" :style="{ width: goal.achievement + '%' }"
+                                         :aria-valuenow="goal.achievement" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-secondary small">
+                                    <i class="bi bi-calendar me-1"></i> {{ goal.dueDate }}
+                                </div>
+                                <div class="text-secondary small">
+                                    <i class="bi bi-person-badge me-1"></i> {{ goal.owner }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Trends Chart -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-graph-up text-primary"></i> 분기별 성과 추이
+                    </h5>
+                    <canvas ref="performanceTrendChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-12 col-lg-4">
+            <!-- Key Metrics -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-speedometer text-primary"></i> 주요 지표
+                    </h5>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary">인재 유지율</span>
+                            <span class="fw-bold">{{ metrics.retentionRate }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 :style="{ width: metrics.retentionRate + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary">목표 설정 완료율</span>
+                            <span class="fw-bold">{{ metrics.goalSetupRate }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar"
+                                 :style="{ width: metrics.goalSetupRate + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary">교육 이수율</span>
+                            <span class="fw-bold">{{ metrics.trainingRate }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" role="progressbar"
+                                 :style="{ width: metrics.trainingRate + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary">평가 완료율</span>
+                            <span class="fw-bold">{{ metrics.evaluationRate }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                 :style="{ width: metrics.evaluationRate + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Performers -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-star text-warning"></i> 우수 인재
+                        </h5>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        <div v-for="(performer, index) in topPerformers" :key="performer.id"
+                             class="list-group-item px-0 border-bottom">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="badge rounded-circle bg-primary flex-shrink-0"
+                                     style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                    {{ index + 1 }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium small">{{ performer.name }}</div>
+                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                        {{ performer.department }} • {{ performer.position }}
+                                    </div>
+                                </div>
+                                <div class="text-end flex-shrink-0">
+                                    <div class="fw-bold small text-success">{{ performer.score }}</div>
+                                    <div class="text-secondary" style="font-size: 0.7rem;">점</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Goals Distribution -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-pie-chart text-success"></i> 목표 분포
+                    </h5>
+                    <canvas ref="goalDistributionChart" style="max-height: 250px;"></canvas>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2 small">
+                            <span class="text-secondary">완료</span>
+                            <span class="fw-semibold text-success">{{ goalStats.completed }}개 ({{ goalStats.completedPercent }}%)</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 small">
+                            <span class="text-secondary">진행중</span>
+                            <span class="fw-semibold text-primary">{{ goalStats.inProgress }}개 ({{ goalStats.inProgressPercent }}%)</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span class="text-secondary">지연</span>
+                            <span class="fw-semibold text-danger">{{ goalStats.delayed }}개 ({{ goalStats.delayedPercent }}%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,262 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">역량 진단</h1>
+        <p class="page-subtitle">정기적인 역량 진단을 통해 성장 방향을 설정하세요</p>
+    </div>
+
+    <!-- Assessment Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">총 진단 완료</div>
+                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.totalCompleted }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">회</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">최근 진단일</div>
+                <div class="fw-bold" style="font-size: 1.5rem;">{{ stats.lastAssessmentDate }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">{{ stats.daysSinceLastAssessment }}일 경과</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">다음 진단 예정</div>
+                <div class="fw-bold text-warning" style="font-size: 1.5rem;">{{ stats.nextAssessmentDate }}</div>
+                <div class="text-secondary mt-2" style="font-size: 0.875rem;">{{ stats.daysUntilNextAssessment }}일 남음</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Categories -->
+    <div class="row g-4 mb-4">
+        <div v-for="category in assessmentCategories" :key="category.id" class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                             :style="{ width: '56px', height: '56px', backgroundColor: category.color + '20' }">
+                            <i :class="category.icon" :style="{ fontSize: '1.75rem', color: category.color }"></i>
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <h5 class="fw-bold mb-1">{{ category.name }}</h5>
+                            <p class="text-secondary mb-0 small">{{ category.description }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary">진행률</span>
+                            <span class="fw-bold">{{ category.progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" :style="{ width: category.progress + '%', backgroundColor: category.color }"
+                                 role="progressbar" :aria-valuenow="category.progress" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="small text-secondary">
+                            <i class="bi bi-check-circle"></i> {{ category.completedQuestions }}/{{ category.totalQuestions }} 완료
+                        </div>
+                        <button class="btn btn-sm"
+                                :class="category.progress === 100 ? 'btn-outline-success' : 'btn-primary'"
+                                @click="startAssessment(category.id)">
+                            <i :class="category.progress === 100 ? 'bi bi-arrow-clockwise' : 'bi bi-play-fill'"></i>
+                            {{ category.progress === 100 ? '재진단' : category.progress > 0 ? '이어하기' : '시작하기' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Assessment Results -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-graph-up text-primary"></i> 최근 진단 결과
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" @click="viewAllResults">
+                            전체 보기 <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div v-if="recentResults.length === 0" class="text-center py-5 text-secondary">
+                        <i class="bi bi-clipboard-data" style="font-size: 3rem;"></i>
+                        <p class="mt-3 mb-0">아직 완료된 진단이 없습니다.</p>
+                        <p class="small">위의 진단 카테고리에서 시작해보세요.</p>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="result in recentResults" :key="result.id" class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h6 class="fw-bold mb-0">{{ result.categoryName }}</h6>
+                                        <span class="badge" :style="{ backgroundColor: result.color }">
+                                            {{ result.score }}점
+                                        </span>
+                                    </div>
+                                    <div class="text-secondary small">{{ result.date }} • {{ result.questionsCount }}개 문항</div>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary" @click="viewResultDetail(result.id)">
+                                    상세보기
+                                </button>
+                            </div>
+
+                            <!-- Strengths & Weaknesses -->
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded" style="background: rgba(16, 185, 129, 0.1);">
+                                        <div class="fw-medium small text-success mb-1">
+                                            <i class="bi bi-arrow-up-circle"></i> 강점
+                                        </div>
+                                        <div class="small">{{ result.strengths }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded" style="background: rgba(239, 68, 68, 0.1);">
+                                        <div class="fw-medium small text-danger mb-1">
+                                            <i class="bi bi-arrow-down-circle"></i> 개선영역
+                                        </div>
+                                        <div class="small">{{ result.weaknesses }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Actions -->
+    <div class="row g-4">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb text-warning"></i> 추천 진단
+                    </h5>
+
+                    <div v-for="recommendation in recommendations" :key="recommendation.id"
+                         class="d-flex align-items-start gap-3 mb-3 p-3 rounded"
+                         style="background: var(--gray-50);">
+                        <i :class="recommendation.icon" class="text-primary" style="font-size: 1.5rem;"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium mb-1">{{ recommendation.title }}</div>
+                            <div class="text-secondary small">{{ recommendation.description }}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary" @click="startAssessment(recommendation.categoryId)">
+                            시작
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-bar-chart-line text-success"></i> 진단 가이드
+                    </h5>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-start gap-2 mb-2">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <div>
+                                <div class="fw-medium small">정기적인 진단</div>
+                                <div class="text-secondary small">분기별 1회 이상 진단을 권장합니다</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-2 mb-2">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <div>
+                                <div class="fw-medium small">솔직한 응답</div>
+                                <div class="text-secondary small">정확한 진단을 위해 솔직하게 답변해주세요</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-2 mb-2">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <div>
+                                <div class="fw-medium small">결과 활용</div>
+                                <div class="text-secondary small">진단 결과를 성장 맵에 반영하여 발전 계획을 수립하세요</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <div>
+                                <div class="fw-medium small">지속적인 개선</div>
+                                <div class="text-secondary small">약점 영역에 대한 학습과 실천을 이어가세요</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info border-0 mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Tip:</strong> 진단 결과는 성장 맵과 자동으로 연동됩니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Modal -->
+    <div v-if="showAssessmentModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeAssessmentModal">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ currentAssessment.categoryName }} 진단</h5>
+                    <button type="button" class="btn-close" @click="closeAssessmentModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-secondary">진행률</span>
+                            <span class="fw-bold">{{ currentAssessment.currentQuestion }}/{{ currentAssessment.totalQuestions }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar"
+                                 :style="{ width: (currentAssessment.currentQuestion / currentAssessment.totalQuestions * 100) + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <div v-if="currentAssessment.currentQuestion <= currentAssessment.totalQuestions">
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">{{ currentAssessment.question }}</h6>
+                            <div class="d-grid gap-2">
+                                <button v-for="option in currentAssessment.options" :key="option.value"
+                                        class="btn btn-outline-primary text-start"
+                                        :class="{ 'active': currentAssessment.selectedAnswer === option.value }"
+                                        @click="selectAnswer(option.value)">
+                                    {{ option.label }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="text-center py-5">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                        <h5 class="mt-3">진단이 완료되었습니다!</h5>
+                        <p class="text-secondary">결과를 분석 중입니다...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="closeAssessmentModal">나가기</button>
+                    <button type="button" class="btn btn-primary"
+                            :disabled="!currentAssessment.selectedAnswer"
+                            @click="nextQuestion">
+                        {{ currentAssessment.currentQuestion < currentAssessment.totalQuestions ? '다음' : '완료' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

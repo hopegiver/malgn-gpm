@@ -1,9 +1,25 @@
 export default {
     data() {
+        // 초기 렌더링 시점부터 경로에 맞는 아코디언을 열기
+        const path = window.location.hash.substring(1);
+        let initialOpenAccordions = [];
+
+        if (path.startsWith('/goals')) {
+            initialOpenAccordions = ['goals'];
+        } else if (path.startsWith('/execution')) {
+            initialOpenAccordions = ['execution'];
+        } else if (path.startsWith('/growth')) {
+            initialOpenAccordions = ['growth'];
+        } else if (path.startsWith('/review')) {
+            initialOpenAccordions = ['review'];
+        } else if (path.startsWith('/settings')) {
+            initialOpenAccordions = ['settings'];
+        }
+
         return {
             appName: window.APP_NAME,
             sidebarIconMode: false,
-            openAccordions: [], // 초기에는 모두 닫혀있음
+            openAccordions: initialOpenAccordions,
             searchQuery: '',
             notificationCount: 3,
             feedbackCount: 2,
@@ -24,9 +40,6 @@ export default {
         // 화면 크기에 따라 사이드바 모드 설정
         this.checkScreenSize();
         window.addEventListener('resize', this.checkScreenSize);
-
-        // 현재 경로에 따라 아코디언 열기
-        this.openCurrentAccordion();
 
         // 라우트 변경 시 아코디언 자동 업데이트
         window.addEventListener('hashchange', this.openCurrentAccordion);

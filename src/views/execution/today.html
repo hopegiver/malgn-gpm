@@ -134,16 +134,28 @@
 
             <!-- Task Filters -->
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="btn-group">
-                    <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'all', 'btn-outline-secondary': taskFilter !== 'all' }" @click="taskFilter = 'all'">
-                        전체 ({{ tasks.length }})
-                    </button>
-                    <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'pending', 'btn-outline-secondary': taskFilter !== 'pending' }" @click="taskFilter = 'pending'">
-                        진행 중 ({{ pendingTasks.length }})
-                    </button>
-                    <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'completed', 'btn-outline-secondary': taskFilter !== 'completed' }" @click="taskFilter = 'completed'">
-                        완료 ({{ completedTasks.length }})
-                    </button>
+                <div class="d-flex gap-3 align-items-center">
+                    <div class="btn-group">
+                        <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'all', 'btn-outline-secondary': taskFilter !== 'all' }" @click="taskFilter = 'all'">
+                            전체 ({{ tasks.length }})
+                        </button>
+                        <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'pending', 'btn-outline-secondary': taskFilter !== 'pending' }" @click="taskFilter = 'pending'">
+                            진행 중 ({{ pendingTasks.length }})
+                        </button>
+                        <button class="btn btn-sm" :class="{ 'btn-primary': taskFilter === 'completed', 'btn-outline-secondary': taskFilter !== 'completed' }" @click="taskFilter = 'completed'">
+                            완료 ({{ completedTasks.length }})
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-sort-down text-secondary"></i>
+                        <select class="form-select form-select-sm" v-model="taskSort" style="width: auto; font-size: 0.875rem;">
+                            <option value="newest">최신 등록순</option>
+                            <option value="oldest">오래된 순</option>
+                            <option value="priority">우선순위 높은순</option>
+                            <option value="timeAsc">예상시간 짧은순</option>
+                            <option value="timeDesc">예상시간 긴순</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="text-secondary" style="font-size: 0.875rem;">
                     총 {{ stats.executedHours }} / {{ stats.plannedHours }} 시간

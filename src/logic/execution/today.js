@@ -9,6 +9,7 @@ export default {
             tasks: [],
             goals: [],
             taskFilter: 'all',
+            taskSort: 'newest',  // 정렬: newest, oldest, priority, timeAsc, timeDesc
             newTask: {
                 title: '',
                 goalId: '',
@@ -47,13 +48,17 @@ export default {
             return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
         },
         filteredTasks() {
+            let filtered = [];
             if (this.taskFilter === 'all') {
-                return this.tasks;
+                filtered = this.tasks;
             } else if (this.taskFilter === 'pending') {
-                return this.tasks.filter(t => !t.completed);
+                filtered = this.tasks.filter(t => !t.completed);
             } else {
-                return this.tasks.filter(t => t.completed);
+                filtered = this.tasks.filter(t => t.completed);
             }
+
+            // 정렬 적용
+            return this.sortTasks(filtered);
         },
         pendingTasks() {
             return this.tasks.filter(t => !t.completed);
@@ -376,6 +381,48 @@ export default {
             this.stats.executedHours = this.tasks
                 .filter(t => t.actualTime !== null)
                 .reduce((sum, t) => sum + t.actualTime, 0);
+        },
+
+        sortTasks(tasks) {
+            const sorted = [...tasks];
+
+            switch (this.taskSort) {
+                case 'newest':
+                    // 최신 등록순 (ID가 클수록 최근)
+                    return sorted.sort((a, b) => b.id - a.id);
+
+                case 'oldest':
+                    // 오래된 순
+                    return sorted.sort((a, b) => a.id - b.id);
+
+                case 'priority':
+                    // 우선순위 높은순 (High → Medium → Low)
+                    const priorityOrder = { 'High': 1, 'Medium': 2, 'Low': 3 };
+                    return sorted.sort((a, b) => {
+                        const diff = priorityOrder[a.priority] - priorityOrder[b.priority];
+                        // 같은 우선순위면 최신순
+                        return diff !== 0 ? diff : b.id - a.id;
+                    });
+
+                case 'timeAsc':
+                    // 예상시간 짧은순
+                    return sorted.sort((a, b) => {
+                        const diff = a.estimatedTime - b.estimatedTime;
+                        // 같은 시간이면 최신순
+                        return diff !== 0 ? diff : b.id - a.id;
+                    });
+
+                case 'timeDesc':
+                    // 예상시간 긴순
+                    return sorted.sort((a, b) => {
+                        const diff = b.estimatedTime - a.estimatedTime;
+                        // 같은 시간이면 최신순
+                        return diff !== 0 ? diff : b.id - a.id;
+                    });
+
+                default:
+                    return sorted;
+            }
         },
 
         onGoalChange() {

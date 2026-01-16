@@ -33,82 +33,181 @@
         </div>
     </div>
 
-    <!-- BSC Category Tabs -->
-    <div class="mb-4">
-        <div class="btn-group w-100" role="group">
-            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === 'all', 'btn-outline-secondary': selectedCategory !== 'all' }" @click="selectedCategory = 'all'">
-                전체 ({{ teamKPIs.length }})
-            </button>
-            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '재무', 'btn-outline-secondary': selectedCategory !== '재무' }" @click="selectedCategory = '재무'">
-                재무 ({{ getCategoryCount('재무') }})
-            </button>
-            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '고객', 'btn-outline-secondary': selectedCategory !== '고객' }" @click="selectedCategory = '고객'">
-                고객 ({{ getCategoryCount('고객') }})
-            </button>
-            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '프로세스', 'btn-outline-secondary': selectedCategory !== '프로세스' }" @click="selectedCategory = '프로세스'">
-                프로세스 ({{ getCategoryCount('프로세스') }})
-            </button>
-            <button type="button" class="btn" :class="{ 'btn-primary': selectedCategory === '학습과성장', 'btn-outline-secondary': selectedCategory !== '학습과성장' }" @click="selectedCategory = '학습과성장'">
-                학습과성장 ({{ getCategoryCount('학습과성장') }})
-            </button>
-        </div>
-    </div>
-
-    <!-- Team KPIs List -->
+    <!-- BSC 4-Column Layout -->
     <div class="row g-4">
-        <div class="col-12">
-            <div v-for="kpi in filteredKPIs" :key="kpi.id" class="card border-0 shadow-sm rounded-3 mb-3">
-                <div class="card-body p-4">
-                    <!-- KPI Header -->
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <h5 class="fw-bold mb-0">{{ kpi.title }}</h5>
-                                <span class="badge" :class="getCategoryBadgeClass(kpi.category)">
-                                    {{ kpi.category }}
-                                </span>
-                            </div>
-                            <div class="d-flex gap-3 text-secondary" style="font-size: 0.875rem;">
-                                <span>
-                                    <i class="bi bi-people"></i> 개발팀
-                                </span>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <span class="signal-light" :class="getSignalClass(kpi.achievement)">
-                                <i class="bi bi-circle-fill"></i>
-                                {{ kpi.achievement }}%
-                            </span>
+        <!-- 재무 관점 -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="mb-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2">
+                    <span class="badge bg-success">재무</span>
+                    <span class="text-secondary" style="font-size: 0.875rem;">({{ financialKPIs.length }}개)</span>
+                </h5>
+                <p class="text-secondary mb-0" style="font-size: 0.875rem;">매출, 수익성 등 재무적 성과</p>
+            </div>
+            <div v-for="kpi in financialKPIs" :key="kpi.id" class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="mb-2">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">{{ kpi.title }}</h6>
+                        <div class="text-secondary mb-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-people"></i> 개발팀
                         </div>
                     </div>
-
-                    <!-- Linked Company KPI -->
-                    <div class="card p-3 mb-3 border-0" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-building text-warning fs-5"></i>
-                            <div>
-                                <div class="text-secondary" style="font-size: 0.75rem;">연결된 회사 KPI</div>
+                    <div class="card p-2 mb-2 border-0" style="background: #fef3c7;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-building text-warning" style="font-size: 0.875rem;"></i>
+                            <div style="font-size: 0.7rem;">
+                                <div class="text-secondary">연결된 회사 KPI</div>
                                 <div class="fw-medium">{{ kpi.companyKPITitle }}</div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Progress Bar -->
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span style="color: var(--gray-600);">달성률</span>
-                            <span style="color: var(--gray-900); font-weight: 600;">{{ kpi.achievement }}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" :class="getSignalClass(kpi.achievement)" :style="{ width: kpi.achievement + '%' }"></div>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 0.875rem; color: var(--gray-600);">달성률</span>
+                        <span class="signal-light" :class="getSignalClass(kpi.achievement)">
+                            <i class="bi bi-circle-fill"></i>
+                            {{ kpi.achievement }}%
+                        </span>
+                    </div>
+                    <div class="progress-bar mt-2">
+                        <div class="progress-fill" :class="getSignalClass(kpi.achievement)" :style="{ width: kpi.achievement + '%' }"></div>
                     </div>
                 </div>
             </div>
+            <div v-if="financialKPIs.length === 0" class="text-center py-4">
+                <i class="bi bi-inbox" style="font-size: 2rem; color: var(--gray-400);"></i>
+                <p class="mt-2 text-secondary" style="font-size: 0.875rem;">KPI 없음</p>
+            </div>
+        </div>
 
-            <div v-if="filteredKPIs.length === 0" class="text-center py-5">
-                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--gray-400);"></i>
-                <p class="mt-3 text-secondary">해당 카테고리의 팀 KPI가 없습니다.</p>
+        <!-- 고객 관점 -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="mb-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">고객</span>
+                    <span class="text-secondary" style="font-size: 0.875rem;">({{ customerKPIs.length }}개)</span>
+                </h5>
+                <p class="text-secondary mb-0" style="font-size: 0.875rem;">고객 만족도, 유지율 등</p>
+            </div>
+            <div v-for="kpi in customerKPIs" :key="kpi.id" class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="mb-2">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">{{ kpi.title }}</h6>
+                        <div class="text-secondary mb-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-people"></i> 개발팀
+                        </div>
+                    </div>
+                    <div class="card p-2 mb-2 border-0" style="background: #fef3c7;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-building text-warning" style="font-size: 0.875rem;"></i>
+                            <div style="font-size: 0.7rem;">
+                                <div class="text-secondary">연결된 회사 KPI</div>
+                                <div class="fw-medium">{{ kpi.companyKPITitle }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 0.875rem; color: var(--gray-600);">달성률</span>
+                        <span class="signal-light" :class="getSignalClass(kpi.achievement)">
+                            <i class="bi bi-circle-fill"></i>
+                            {{ kpi.achievement }}%
+                        </span>
+                    </div>
+                    <div class="progress-bar mt-2">
+                        <div class="progress-fill" :class="getSignalClass(kpi.achievement)" :style="{ width: kpi.achievement + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            <div v-if="customerKPIs.length === 0" class="text-center py-4">
+                <i class="bi bi-inbox" style="font-size: 2rem; color: var(--gray-400);"></i>
+                <p class="mt-2 text-secondary" style="font-size: 0.875rem;">KPI 없음</p>
+            </div>
+        </div>
+
+        <!-- 프로세스 관점 -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="mb-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2">
+                    <span class="badge bg-info">프로세스</span>
+                    <span class="text-secondary" style="font-size: 0.875rem;">({{ processKPIs.length }}개)</span>
+                </h5>
+                <p class="text-secondary mb-0" style="font-size: 0.875rem;">업무 효율성, 품질, 혁신</p>
+            </div>
+            <div v-for="kpi in processKPIs" :key="kpi.id" class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="mb-2">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">{{ kpi.title }}</h6>
+                        <div class="text-secondary mb-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-people"></i> 개발팀
+                        </div>
+                    </div>
+                    <div class="card p-2 mb-2 border-0" style="background: #fef3c7;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-building text-warning" style="font-size: 0.875rem;"></i>
+                            <div style="font-size: 0.7rem;">
+                                <div class="text-secondary">연결된 회사 KPI</div>
+                                <div class="fw-medium">{{ kpi.companyKPITitle }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 0.875rem; color: var(--gray-600);">달성률</span>
+                        <span class="signal-light" :class="getSignalClass(kpi.achievement)">
+                            <i class="bi bi-circle-fill"></i>
+                            {{ kpi.achievement }}%
+                        </span>
+                    </div>
+                    <div class="progress-bar mt-2">
+                        <div class="progress-fill" :class="getSignalClass(kpi.achievement)" :style="{ width: kpi.achievement + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            <div v-if="processKPIs.length === 0" class="text-center py-4">
+                <i class="bi bi-inbox" style="font-size: 2rem; color: var(--gray-400);"></i>
+                <p class="mt-2 text-secondary" style="font-size: 0.875rem;">KPI 없음</p>
+            </div>
+        </div>
+
+        <!-- 학습과성장 관점 -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="mb-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark">학습과성장</span>
+                    <span class="text-secondary" style="font-size: 0.875rem;">({{ learningKPIs.length }}개)</span>
+                </h5>
+                <p class="text-secondary mb-0" style="font-size: 0.875rem;">직원 역량, 교육, 조직 문화</p>
+            </div>
+            <div v-for="kpi in learningKPIs" :key="kpi.id" class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="mb-2">
+                        <h6 class="fw-bold mb-2" style="font-size: 0.9rem;">{{ kpi.title }}</h6>
+                        <div class="text-secondary mb-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-people"></i> 개발팀
+                        </div>
+                    </div>
+                    <div class="card p-2 mb-2 border-0" style="background: #fef3c7;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-building text-warning" style="font-size: 0.875rem;"></i>
+                            <div style="font-size: 0.7rem;">
+                                <div class="text-secondary">연결된 회사 KPI</div>
+                                <div class="fw-medium">{{ kpi.companyKPITitle }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="font-size: 0.875rem; color: var(--gray-600);">달성률</span>
+                        <span class="signal-light" :class="getSignalClass(kpi.achievement)">
+                            <i class="bi bi-circle-fill"></i>
+                            {{ kpi.achievement }}%
+                        </span>
+                    </div>
+                    <div class="progress-bar mt-2">
+                        <div class="progress-fill" :class="getSignalClass(kpi.achievement)" :style="{ width: kpi.achievement + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            <div v-if="learningKPIs.length === 0" class="text-center py-4">
+                <i class="bi bi-inbox" style="font-size: 2rem; color: var(--gray-400);"></i>
+                <p class="mt-2 text-secondary" style="font-size: 0.875rem;">KPI 없음</p>
             </div>
         </div>
     </div>

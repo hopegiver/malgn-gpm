@@ -3,7 +3,6 @@ export default {
     data() {
         return {
             teamKPIs: [],
-            selectedCategory: 'all',
             teamStats: {
                 total: 0,
                 achieved: 0,
@@ -13,11 +12,17 @@ export default {
         };
     },
     computed: {
-        filteredKPIs() {
-            if (this.selectedCategory === 'all') {
-                return this.teamKPIs;
-            }
-            return this.teamKPIs.filter(kpi => kpi.category === this.selectedCategory);
+        financialKPIs() {
+            return this.teamKPIs.filter(kpi => kpi.category === '재무');
+        },
+        customerKPIs() {
+            return this.teamKPIs.filter(kpi => kpi.category === '고객');
+        },
+        processKPIs() {
+            return this.teamKPIs.filter(kpi => kpi.category === '프로세스');
+        },
+        learningKPIs() {
+            return this.teamKPIs.filter(kpi => kpi.category === '학습과성장');
         }
     },
     async mounted() {

@@ -1,0 +1,214 @@
+<div class="container-fluid py-4">
+    <!-- 페이지 헤더 -->
+    <div class="page-header mb-4">
+        <h1 class="page-title">전사 목표 대시보드</h1>
+        <p class="page-subtitle">전사 목표 달성 현황을 한눈에 확인합니다</p>
+    </div>
+
+    <!-- 전체 통계 카드 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">전체 목표</div>
+                    <div class="stat-value">{{ totalGoals }}</div>
+                    <div class="stat-change text-success">
+                        <i class="bi bi-arrow-up"></i> 전년 대비 +15%
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">완료된 목표</div>
+                    <div class="stat-value">{{ completedGoals }}</div>
+                    <div class="stat-change text-success">
+                        <i class="bi bi-arrow-up"></i> {{ completionRate }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">평균 달성률</div>
+                    <div class="stat-value">{{ averageAchievement }}%</div>
+                    <div class="stat-change" :class="averageAchievement >= 70 ? 'text-success' : 'text-warning'">
+                        <i :class="averageAchievement >= 70 ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+                        {{ averageAchievement >= 70 ? '목표 달성' : '개선 필요' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">위험 목표</div>
+                    <div class="stat-value text-danger">{{ atRiskGoals }}</div>
+                    <div class="stat-change text-danger">
+                        달성률 40% 미만
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BSC 관점별 달성률 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">BSC 관점별 목표 달성 현황</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="bscChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">목표 상태 분포</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BSC 관점별 상세 카드 -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3" v-for="category in bscCategories" :key="category.name">
+            <div class="card h-100">
+                <div class="card-header" :class="'bg-' + category.color + ' text-white'">
+                    <div class="d-flex align-items-center gap-2">
+                        <i :class="'bi bi-' + category.icon"></i>
+                        <h6 class="mb-0">{{ category.name }}</h6>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="fs-1 fw-bold" :class="getAchievementClass(category.achievement)">
+                            {{ category.achievement }}%
+                        </div>
+                        <div class="text-muted small">평균 달성률</div>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar" :class="getProgressClass(category.achievement)"
+                             :style="{ width: category.achievement + '%' }"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>목표 수: {{ category.count }}개</span>
+                        <span>완료: {{ category.completed }}개</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 부서별 성과 순위 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">부서별 목표 달성률 순위</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 10%;">순위</th>
+                                    <th style="width: 40%;">부서</th>
+                                    <th style="width: 25%;">달성률</th>
+                                    <th style="width: 25%;">목표 수</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(dept, index) in rankedDepartments" :key="dept.id">
+                                    <td>
+                                        <span class="badge" :class="getRankBadgeClass(index)">{{ index + 1 }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ dept.name }}</div>
+                                        <small class="text-muted">{{ dept.head }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 8px;">
+                                                <div class="progress-bar" :class="getProgressClass(dept.achievement)"
+                                                     :style="{ width: dept.achievement + '%' }"></div>
+                                            </div>
+                                            <span class="text-nowrap fw-semibold" :class="getAchievementClass(dept.achievement)">
+                                                {{ dept.achievement }}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>{{ dept.goalCount }}개</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주의가 필요한 목표 -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">주의가 필요한 목표 (달성률 낮음)</h5>
+                </div>
+                <div class="card-body">
+                    <div v-if="atRiskGoalsList.length === 0" class="text-center py-5 text-muted">
+                        <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                        <p class="mb-0">모든 목표가 정상 진행 중입니다</p>
+                    </div>
+                    <div v-else class="list-group list-group-flush">
+                        <div class="list-group-item" v-for="goal in atRiskGoalsList" :key="goal.id">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">{{ goal.title }}</div>
+                                    <small class="text-muted">{{ goal.department }} · {{ goal.owner }}</small>
+                                </div>
+                                <span class="badge bg-danger">{{ goal.achievement }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-danger" :style="{ width: goal.achievement + '%' }"></div>
+                            </div>
+                            <small class="text-muted">마감: {{ formatDate(goal.dueDate) }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 월별 트렌드 -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">월별 목표 달성률 추이</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

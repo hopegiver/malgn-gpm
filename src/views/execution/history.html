@@ -113,10 +113,10 @@
                                 <span v-if="task.priority === 'high'" class="badge bg-danger text-xxs">긴급</span>
                                 <span v-else-if="task.priority === 'medium'" class="badge bg-warning text-xxs">보통</span>
                             </div>
-                            <div v-if="task.goalTitle" class="text-secondary mb-2" style="font-size: 0.875rem;">
+                            <div v-if="task.goalTitle" class="text-secondary mb-2 small">
                                 <i class="bi bi-bullseye"></i> {{ task.goalTitle }}
                             </div>
-                            <div class="text-secondary" style="font-size: 0.875rem;">
+                            <div class="text-secondary small">
                                 <i class="bi bi-clock"></i> 예상: {{ task.estimatedTime }}h / 실제: {{ task.actualTime }}h
                             </div>
                         </div>

@@ -10,22 +10,22 @@
         <div class="col-12 col-md-4">
             <div class="stat-card rounded-3 p-4 text-center">
                 <div class="text-secondary fw-medium mb-2">이번 달 미팅</div>
-                <div class="fw-bold text-primary" style="font-size: 2.5rem;">{{ stats.monthlyMeetings }}</div>
-                <div class="text-secondary mt-2" style="font-size: 0.875rem;">회</div>
+                <div class="fw-bold text-primary fs-1">{{ stats.monthlyMeetings }}</div>
+                <div class="text-secondary mt-2 small">회</div>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="stat-card rounded-3 p-4 text-center">
                 <div class="text-secondary fw-medium mb-2">예정된 미팅</div>
-                <div class="fw-bold text-warning" style="font-size: 2.5rem;">{{ stats.upcomingMeetings }}</div>
-                <div class="text-secondary mt-2" style="font-size: 0.875rem;">회</div>
+                <div class="fw-bold text-warning fs-1">{{ stats.upcomingMeetings }}</div>
+                <div class="text-secondary mt-2 small">회</div>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="stat-card rounded-3 p-4 text-center">
                 <div class="text-secondary fw-medium mb-2">평균 주기</div>
-                <div class="fw-bold text-success" style="font-size: 2.5rem;">{{ stats.avgFrequency }}</div>
-                <div class="text-secondary mt-2" style="font-size: 0.875rem;">주</div>
+                <div class="fw-bold text-success fs-1">{{ stats.avgFrequency }}</div>
+                <div class="text-secondary mt-2 small">주</div>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
                     </h5>
 
                     <div v-if="upcomingMeetings.length === 0" class="text-center py-4 text-secondary">
-                        <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+                        <i class="bi bi-calendar-x icon-2x"></i>
                         <p class="mt-2 mb-0">예정된 미팅이 없습니다.</p>
                     </div>
 
@@ -124,7 +124,7 @@
     </div>
 
     <!-- Schedule Meeting Modal -->
-    <div v-if="showScheduleModal" class="modal d-block" style="background: rgba(0,0,0,0.5);" @click.self="closeScheduleModal">
+    <div v-if="showScheduleModal" class="modal d-block modal-backdrop-dark" @click.self="closeScheduleModal">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">

@@ -34,7 +34,7 @@ export default {
                                 !user.roles.includes(window.ROLES.EXECUTIVE) &&
                                 !user.roles.includes(window.ROLES.DEPT_HEAD) &&
                                 !user.roles.includes(window.ROLES.HR))) {
-                window.location.hash = '#/dashboard/employee';
+                this.navigateTo('/dashboard/employee');
                 return;
             }
         }

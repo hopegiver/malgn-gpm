@@ -1,0 +1,189 @@
+<div>
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">팀원 주간보고서</h1>
+        <p class="page-subtitle">{{ teamName }} 팀원들의 주간보고서를 확인하고 피드백을 제공하세요</p>
+    </div>
+
+    <!-- Week Navigation -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button class="btn btn-outline-secondary" @click="previousWeek">
+                            <i class="bi bi-chevron-left"></i> 이전 주
+                        </button>
+                        <div class="text-center">
+                            <div class="fw-bold">{{ currentWeekDisplay }}</div>
+                            <div class="small text-secondary">{{ weekRangeDisplay }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" @click="goToToday">
+                                <i class="bi bi-calendar-today"></i> 오늘
+                            </button>
+                            <button class="btn btn-outline-secondary" @click="nextWeek" :disabled="isCurrentWeek">
+                                다음 주 <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">제출 현황</div>
+                <div class="fw-bold text-primary fs-1">{{ stats.submittedCount }}/{{ stats.totalMembers }}</div>
+                <div class="text-secondary mt-2 small">명</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">피드백 완료</div>
+                <div class="fw-bold text-success fs-1">{{ stats.feedbackCount }}</div>
+                <div class="text-secondary mt-2 small">건</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">피드백 대기</div>
+                <div class="fw-bold text-warning fs-1">{{ stats.pendingFeedback }}</div>
+                <div class="text-secondary mt-2 small">건</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="stat-card rounded-3 p-4 text-center">
+                <div class="text-secondary fw-medium mb-2">평균 달성률</div>
+                <div class="fw-bold text-info fs-1">{{ stats.avgAchievement }}%</div>
+                <div class="text-secondary mt-2 small">팀 전체</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Reports List -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-file-text text-primary"></i> 주간보고서 목록
+                    </h5>
+
+                    <div v-if="weeklyReports.length === 0" class="text-center py-5 text-secondary">
+                        <i class="bi bi-inbox icon-3x"></i>
+                        <p class="mt-3 mb-0">제출된 주간보고서가 없습니다.</p>
+                    </div>
+
+                    <div v-else>
+                        <div v-for="report in weeklyReports" :key="report.id" class="border rounded-3 p-4 mb-3">
+                            <!-- Report Header -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center avatar-xl">
+                                        {{ report.memberInitial }}
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">{{ report.memberName }}</h6>
+                                        <small class="text-secondary">{{ report.position }}</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge" :class="'bg-' + getStatusBadgeClass(report.status)">
+                                        {{ report.status }}
+                                    </span>
+                                    <small class="text-secondary">{{ report.submittedAt }}</small>
+                                </div>
+                            </div>
+
+                            <!-- Report Summary -->
+                            <div class="mb-3">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="p-2 bg-light rounded">
+                                            <small class="text-secondary d-block mb-1">주간 목표 달성률</small>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="fw-bold">{{ report.achievement }}%</div>
+                                                <div class="progress flex-grow-1 progress-xs">
+                                                    <div class="progress-bar" :class="'bg-' + getProgressClass(report.achievement)"
+                                                         :style="{ width: report.achievement + '%' }"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-2 bg-light rounded">
+                                            <small class="text-secondary d-block mb-1">완료 업무</small>
+                                            <div class="fw-bold">{{ report.completedTasks }}/{{ report.totalTasks }} 건</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-2 bg-light rounded">
+                                            <small class="text-secondary d-block mb-1">이슈 사항</small>
+                                            <div class="fw-bold">{{ report.issueCount }} 건</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Report Content Preview -->
+                            <div class="mb-3">
+                                <div class="mb-2">
+                                    <small class="fw-medium text-secondary">주요 성과</small>
+                                    <p class="mb-0 small">{{ report.achievements }}</p>
+                                </div>
+                                <div v-if="report.issues" class="mb-2">
+                                    <small class="fw-medium text-secondary text-danger">이슈 및 어려움</small>
+                                    <p class="mb-0 small text-danger">{{ report.issues }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Feedback Section -->
+                            <div class="border-top pt-3">
+                                <div v-if="report.feedback" class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <small class="fw-medium text-success">
+                                            <i class="bi bi-chat-left-text"></i> 피드백
+                                        </small>
+                                        <small class="text-secondary">{{ report.feedbackAt }}</small>
+                                    </div>
+                                    <div class="p-3 bg-light rounded">
+                                        <p class="mb-0 small">{{ report.feedback }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Form -->
+                                <div v-if="editingFeedback === report.id" class="mb-3">
+                                    <textarea class="form-control mb-2" rows="3" v-model="feedbackText"
+                                              placeholder="피드백을 입력하세요..."></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-success" @click="saveFeedback(report.id)">
+                                            <i class="bi bi-check-circle"></i> 저장
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary" @click="cancelFeedback">
+                                            취소
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" @click="viewReportDetail(report.id)">
+                                        <i class="bi bi-eye"></i> 상세보기
+                                    </button>
+                                    <button class="btn btn-sm" :class="report.feedback ? 'btn-outline-secondary' : 'btn-primary'"
+                                            @click="openFeedbackForm(report.id, report.feedback)">
+                                        <i class="bi bi-chat-left-text"></i> {{ report.feedback ? '피드백 수정' : '피드백 작성' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

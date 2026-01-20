@@ -28,14 +28,14 @@ export default {
             if (window.isExecutive() ||
                 (user.roles && (user.roles.includes(window.ROLES.CEO) ||
                                 user.roles.includes(window.ROLES.EXECUTIVE)))) {
-                window.location.hash = '#/dashboard/executive';
+                this.navigateTo('/dashboard/executive');
                 return;
             }
 
             // 관리자가 아닌 경우 직원 대시보드로 리다이렉트
             if (!user.roles || (!user.roles.includes(window.ROLES.DEPT_HEAD) &&
                                 !user.roles.includes(window.ROLES.TEAM_LEADER))) {
-                window.location.hash = '#/dashboard/employee';
+                this.navigateTo('/dashboard/employee');
                 return;
             }
         }
@@ -347,7 +347,7 @@ export default {
 
         viewMemberDetail(memberId) {
             // TODO: 팀원 상세 페이지로 이동
-            window.location.hash = `#/team/member/${memberId}`;
+            this.navigateTo('/team/member', { id: memberId });
         },
 
         giveFeedback(memberId) {

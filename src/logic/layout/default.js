@@ -8,6 +8,8 @@ export default {
             initialOpenAccordions = ['goals'];
         } else if (path.startsWith('/execution')) {
             initialOpenAccordions = ['execution'];
+        } else if (path.startsWith('/team')) {
+            initialOpenAccordions = ['team'];
         } else if (path.startsWith('/growth')) {
             initialOpenAccordions = ['growth'];
         } else if (path.startsWith('/review')) {
@@ -150,6 +152,8 @@ export default {
                 this.openAccordions = ['goals'];
             } else if (path.startsWith('/execution')) {
                 this.openAccordions = ['execution'];
+            } else if (path.startsWith('/team')) {
+                this.openAccordions = ['team'];
             } else if (path.startsWith('/growth')) {
                 this.openAccordions = ['growth'];
             } else if (path.startsWith('/review')) {
@@ -173,7 +177,7 @@ export default {
             // TODO: 알림 패널 표시/숨기기
         },
         goToFeedback() {
-            window.location.hash = '#/growth/my-map';
+            this.navigateTo('/growth/my-map');
         },
         toggleUserMenu(event) {
             event.stopPropagation();
@@ -187,11 +191,11 @@ export default {
         },
         goToProfile() {
             this.showUserMenu = false;
-            window.location.hash = '#/profile';
+            this.navigateTo('/profile');
         },
         goToSettings() {
             this.showUserMenu = false;
-            window.location.hash = '#/settings/my-settings';
+            this.navigateTo('/settings/my-settings');
         },
         handleLogout() {
             this.showUserMenu = false;
@@ -204,7 +208,7 @@ export default {
                 window.localStorage.removeItem('auth_token');
 
                 // 로그인 페이지로 이동
-                window.location.href = '#/login';
+                this.navigateTo('/login');
             }
         }
     }

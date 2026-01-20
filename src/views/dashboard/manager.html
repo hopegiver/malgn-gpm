@@ -19,7 +19,7 @@
                             <i class="bi bi-trophy"></i>
                         </div>
                     </div>
-                    <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress progress-sm mb-2">
                         <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(stats.teamGoalAchievement)"
                              role="progressbar" :style="{ width: stats.teamGoalAchievement + '%' }"
                              :aria-valuenow="stats.teamGoalAchievement" aria-valuemin="0" aria-valuemax="100"></div>
@@ -121,7 +121,7 @@
                                 <tr v-for="member in teamMembers" :key="member.id">
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="user-avatar flex-shrink-0" style="width: 36px; height: 36px;">
+                                            <div class="user-avatar avatar-md flex-shrink-0">
                                                 <span class="small">{{ member.initial }}</span>
                                             </div>
                                             <div>
@@ -132,11 +132,11 @@
                                     <td class="text-secondary small">{{ member.position }}</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 80px;">
+                                            <div class="progress progress-xs flex-grow-1 min-w-80">
                                                 <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(member.goalAchievement)"
                                                      role="progressbar" :style="{ width: member.goalAchievement + '%' }"></div>
                                             </div>
-                                            <span class="small fw-semibold" style="min-width: 40px;">{{ member.goalAchievement }}%</span>
+                                            <span class="small fw-semibold min-w-40">{{ member.goalAchievement }}%</span>
                                         </div>
                                     </td>
                                     <td class="small">{{ member.weeklyTasks }}/{{ member.totalTasks }}</td>
@@ -190,7 +190,7 @@
                                     <span class="text-muted">진행률</span>
                                     <span class="fw-semibold">{{ goal.achievement }}%</span>
                                 </div>
-                                <div class="progress" style="height: 8px;">
+                                <div class="progress progress-sm">
                                     <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(goal.achievement)"
                                          role="progressbar" :style="{ width: goal.achievement + '%' }"
                                          :aria-valuenow="goal.achievement" aria-valuemin="0" aria-valuemax="100"></div>
@@ -215,7 +215,7 @@
                     <h5 class="fw-bold mb-3">
                         <i class="bi bi-bar-chart text-primary"></i> 월별 팀 성과 추이
                     </h5>
-                    <canvas ref="performanceChart" style="max-height: 300px;"></canvas>
+                    <canvas ref="performanceChart" class="chart-md"></canvas>
                 </div>
             </div>
         </div>
@@ -266,7 +266,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="flex-grow-1">
                                     <div class="fw-medium small">{{ approval.title }}</div>
-                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                    <div class="text-secondary text-xs">
                                         {{ approval.requester }} • {{ approval.date }}
                                     </div>
                                 </div>
@@ -291,7 +291,7 @@
                     <h5 class="fw-bold mb-3">
                         <i class="bi bi-pentagon text-success"></i> 팀 역량 분석
                     </h5>
-                    <canvas ref="competencyChart" style="max-height: 250px;"></canvas>
+                    <canvas ref="competencyChart" class="chart-sm"></canvas>
                     <div class="text-center mt-3">
                         <a href="#/team/competency" class="btn btn-sm btn-outline-primary">
                             상세 보기 <i class="bi bi-arrow-right"></i>

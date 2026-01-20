@@ -998,6 +998,107 @@ a:hover {
 }
 
 /* ========================================
+   Utility Classes
+   ======================================== */
+
+/* Progress Sizes */
+.progress-xxs {
+    height: 4px !important;
+}
+
+.progress-xs {
+    height: 6px !important;
+}
+
+.progress-sm {
+    height: 8px !important;
+}
+
+/* Chart Sizes */
+.chart-sm {
+    max-height: 250px;
+}
+
+.chart-md {
+    max-height: 300px;
+}
+
+.chart-lg {
+    max-height: 400px;
+}
+
+/* Font Sizes */
+.fs-7 {
+    font-size: 0.75rem !important;
+}
+
+.fs-8 {
+    font-size: 0.7rem !important;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-xxs {
+    font-size: 0.7rem;
+}
+
+/* Avatar Sizes */
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-md {
+    width: 36px;
+    height: 36px;
+}
+
+.avatar-lg {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-xl {
+    width: 48px;
+    height: 48px;
+}
+
+/* Min Width */
+.min-w-40 {
+    min-width: 40px;
+}
+
+.min-w-80 {
+    min-width: 80px;
+}
+
+.min-w-100 {
+    min-width: 100px;
+}
+
+/* Modal & Overlay */
+.modal-backdrop-dark {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Scroll Areas */
+.max-h-300 {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Icon Sizes */
+.icon-2x {
+    font-size: 2rem;
+}
+
+.icon-3x {
+    font-size: 3rem;
+}
+
+/* ========================================
    Responsive Design
    ======================================== */
 
@@ -1153,7 +1254,7 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
     padding: 2rem;
 }
 

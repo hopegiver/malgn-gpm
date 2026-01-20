@@ -90,19 +90,19 @@
                 <template v-if="isExecutiveUser">
                     <!-- 전략 목표 -->
                     <div class="nav-accordion">
-                        <div class="accordion-header" :class="{ active: isAccordionOpen('strategy') }" @click="toggleAccordion('strategy')">
+                        <div class="accordion-header" :class="{ active: isAccordionOpen('goals') }" @click="toggleAccordion('goals')">
                             <i class="bi bi-flag icon"></i>
                             <span v-show="!sidebarIconMode">전략 목표</span>
                             <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                         </div>
-                        <div class="accordion-content" :class="{ open: isAccordionOpen('strategy') }" v-show="!sidebarIconMode">
-                            <a href="#/strategy/company-goals" class="nav-link" :class="{ active: isActive('/strategy/company-goals') }" @click="closeSidebar">
+                        <div class="accordion-content" :class="{ open: isAccordionOpen('goals') }" v-show="!sidebarIconMode">
+                            <a href="#/goals/company-goals" class="nav-link" :class="{ active: isActive('/goals/company-goals') }" @click="closeSidebar">
                                 <span class="nav-label">회사 목표 관리</span>
                             </a>
-                            <a href="#/strategy/department-goals" class="nav-link" :class="{ active: isActive('/strategy/department-goals') }" @click="closeSidebar">
+                            <a href="#/goals/department-goals" class="nav-link" :class="{ active: isActive('/goals/department-goals') }" @click="closeSidebar">
                                 <span class="nav-label">부서별 목표 현황</span>
                             </a>
-                            <a href="#/strategy/goals-dashboard" class="nav-link" :class="{ active: isActive('/strategy/goals-dashboard') }" @click="closeSidebar">
+                            <a href="#/goals/goals-dashboard" class="nav-link" :class="{ active: isActive('/goals/goals-dashboard') }" @click="closeSidebar">
                                 <span class="nav-label">전사 목표 대시보드</span>
                             </a>
                         </div>
@@ -176,7 +176,8 @@
                             <a href="#/goals/my-goals" class="nav-link" :class="{ active: isActive('/goals/my-goals') }" @click="closeSidebar">
                                 <span class="nav-label">나의 목표</span>
                             </a>
-                            <a href="#/goals/team-view" class="nav-link" :class="{ active: isActive('/goals/team-view') }" @click="closeSidebar">
+                            <!-- 일반 직원만: 팀 목표 보기 -->
+                            <a v-if="!isManager" href="#/goals/team-view" class="nav-link" :class="{ active: isActive('/goals/team-view') }" @click="closeSidebar">
                                 <span class="nav-label">팀 목표 보기</span>
                             </a>
                             <a href="#/goals/company-view" class="nav-link" :class="{ active: isActive('/goals/company-view') }" @click="closeSidebar">
@@ -209,10 +210,6 @@
                             <a href="#/execution/monthly-stats" class="nav-link" :class="{ active: isActive('/execution/monthly-stats') }" @click="closeSidebar">
                                 <span class="nav-label">월간 통계</span>
                             </a>
-                            <!-- 팀장 전용: 팀 실행 현황 -->
-                            <a v-if="isManager" href="#/execution/team-status" class="nav-link" :class="{ active: isActive('/execution/team-status') }" @click="closeSidebar">
-                                <span class="nav-label">팀 실행 현황</span>
-                            </a>
                         </div>
                     </div>
 
@@ -224,14 +221,17 @@
                             <i class="bi bi-chevron-down chevron" v-show="!sidebarIconMode"></i>
                         </div>
                         <div class="accordion-content" :class="{ open: isAccordionOpen('team') }" v-show="!sidebarIconMode">
+                            <a href="#/team/tasks" class="nav-link" :class="{ active: isActive('/team/tasks') }" @click="closeSidebar">
+                                <span class="nav-label">팀원 업무 현황</span>
+                            </a>
+                            <a href="#/team/status" class="nav-link" :class="{ active: isActive('/team/status') }" @click="closeSidebar">
+                                <span class="nav-label">팀 실행 현황</span>
+                            </a>
+                            <a href="#/team/weekly-reports" class="nav-link" :class="{ active: isActive('/team/weekly-reports') }" @click="closeSidebar">
+                                <span class="nav-label">팀원 주간보고서</span>
+                            </a>
                             <a href="#/team/performance" class="nav-link" :class="{ active: isActive('/team/performance') }" @click="closeSidebar">
                                 <span class="nav-label">팀원 성과</span>
-                            </a>
-                            <a href="#/team/feedback" class="nav-link" :class="{ active: isActive('/team/feedback') }" @click="closeSidebar">
-                                <span class="nav-label">팀 피드백</span>
-                            </a>
-                            <a href="#/team/one-on-one" class="nav-link" :class="{ active: isActive('/team/one-on-one') }" @click="closeSidebar">
-                                <span class="nav-label">1:1 미팅</span>
                             </a>
                         </div>
                     </div>

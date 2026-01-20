@@ -44,10 +44,10 @@ export default {
                 // 관리자인 경우 관리자 대시보드로
                 if (user.roles && (user.roles.includes(window.ROLES.DEPT_HEAD) ||
                                    user.roles.includes(window.ROLES.TEAM_LEADER))) {
-                    window.location.hash = '#/dashboard/manager';
+                    this.navigateTo('/dashboard/manager');
                 } else {
                     // 그 외 직원 대시보드로
-                    window.location.hash = '#/dashboard/employee';
+                    this.navigateTo('/dashboard/employee');
                 }
                 return;
             }

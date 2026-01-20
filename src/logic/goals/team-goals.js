@@ -15,15 +15,34 @@ export default {
             showGoalModal: false,
             goalForm: {
                 id: null,
+                companyKPIId: '',
                 title: '',
                 description: '',
+                targetValue: null,
+                currentValue: 0,
+                unit: '',
                 owner: '',
                 dueDate: '',
                 parentGoalId: '',
                 status: '진행중',
                 achievement: 0
-            }
+            },
+            companyKPIs: []
         };
+    },
+    computed: {
+        financialKPIs() {
+            return this.companyKPIs.filter(kpi => kpi.category === '재무');
+        },
+        customerKPIs() {
+            return this.companyKPIs.filter(kpi => kpi.category === '고객');
+        },
+        processKPIs() {
+            return this.companyKPIs.filter(kpi => kpi.category === '프로세스');
+        },
+        learningKPIs() {
+            return this.companyKPIs.filter(kpi => kpi.category === '학습과성장');
+        }
     },
     async mounted() {
         // 팀장 권한 체크
@@ -32,7 +51,7 @@ export default {
             (!user.roles.includes(window.ROLES.DEPT_HEAD) &&
              !user.roles.includes(window.ROLES.TEAM_LEADER))) {
             alert('팀장만 접근할 수 있습니다.');
-            window.location.hash = '#/dashboard/employee';
+            this.navigateTo('/dashboard/employee');
             return;
         }
 
@@ -54,59 +73,21 @@ export default {
             // TODO: 실제 API 호출로 대체
             // const data = await this.$api.get('/api/goals/team');
 
-            // 임시 데모 데이터
-            this.teamGoals = [
-                {
-                    id: 1,
-                    title: 'Q1 신규 기능 개발 완료',
-                    description: '사용자 대시보드 및 관리자 기능 개발',
-                    achievement: 75,
-                    dueDate: '2024-03-31',
-                    owner: '김민수',
-                    status: '진행중',
-                    parentGoalId: null
-                },
-                {
-                    id: 2,
-                    title: '코드 품질 개선 프로젝트',
-                    description: '레거시 코드 리팩토링 및 테스트 커버리지 향상',
-                    achievement: 62,
-                    dueDate: '2024-04-15',
-                    owner: '정동욱',
-                    status: '진행중',
-                    parentGoalId: null
-                },
-                {
-                    id: 3,
-                    title: '성능 최적화',
-                    description: '페이지 로딩 속도 30% 개선',
-                    achievement: 48,
-                    dueDate: '2024-04-30',
-                    owner: '이지은',
-                    status: '지연',
-                    parentGoalId: null
-                },
-                {
-                    id: 4,
-                    title: '팀 프로세스 개선',
-                    description: '애자일 스프린트 도입 및 정착',
-                    achievement: 85,
-                    dueDate: '2024-03-15',
-                    owner: '최서연',
-                    status: '진행중',
-                    parentGoalId: null
-                },
-                {
-                    id: 5,
-                    title: '기술 문서화',
-                    description: '프로젝트 아키텍처 및 API 문서 작성',
-                    achievement: 100,
-                    dueDate: '2024-02-28',
-                    owner: '임태양',
-                    status: '완료',
-                    parentGoalId: null
-                }
-            ];
+            // mock-api에서 데이터 로드
+            try {
+                const [companyGoalsRes, teamGoalsRes] = await Promise.all([
+                    fetch('/mock-api/company-goals.json'),
+                    fetch('/mock-api/team-goals.json')
+                ]);
+
+                this.companyKPIs = await companyGoalsRes.json();
+                this.teamGoals = await teamGoalsRes.json();
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+                // 에러 시 빈 배열 유지
+                this.companyKPIs = [];
+                this.teamGoals = [];
+            }
 
             this.teamMembers = [
                 {
@@ -203,8 +184,12 @@ export default {
         openAddGoalModal() {
             this.goalForm = {
                 id: null,
+                companyKPIId: '',
                 title: '',
                 description: '',
+                targetValue: null,
+                currentValue: 0,
+                unit: '',
                 owner: '',
                 dueDate: '',
                 parentGoalId: '',
@@ -219,8 +204,12 @@ export default {
             if (goal) {
                 this.goalForm = {
                     id: goal.id,
+                    companyKPIId: goal.companyKPIId || '',
                     title: goal.title,
                     description: goal.description,
+                    targetValue: goal.targetValue || null,
+                    currentValue: goal.currentValue || 0,
+                    unit: goal.unit || '',
                     owner: goal.owner,
                     dueDate: goal.dueDate,
                     parentGoalId: goal.parentGoalId,
@@ -237,8 +226,20 @@ export default {
 
         async saveGoal() {
             // 유효성 검사
+            if (!this.goalForm.companyKPIId) {
+                alert('연계 회사 KPI를 선택해주세요.');
+                return;
+            }
             if (!this.goalForm.title.trim()) {
                 alert('목표 제목을 입력해주세요.');
+                return;
+            }
+            if (!this.goalForm.targetValue || this.goalForm.targetValue <= 0) {
+                alert('목표 수치를 입력해주세요.');
+                return;
+            }
+            if (!this.goalForm.unit) {
+                alert('단위를 선택해주세요.');
                 return;
             }
             if (!this.goalForm.owner) {
@@ -296,12 +297,11 @@ export default {
 
         viewGoalDetail(goalId) {
             // TODO: 목표 상세 페이지로 이동
-            window.location.hash = `#/goals/detail/${goalId}`;
+            this.navigateTo('/goals/detail', { id: goalId });
         },
 
         viewMemberGoals(memberId) {
-            // TODO: 팀원 목표 상세 페이지로 이동
-            window.location.hash = `#/team/member/${memberId}/goals`;
+            this.navigateTo('/goals/member-goals', { id: memberId });
         },
 
         alignGoals() {
@@ -334,6 +334,31 @@ export default {
             if (value >= 60) return 'primary';
             if (value >= 40) return 'warning';
             return 'danger';
+        },
+
+        getCompanyKPITitle(kpiId) {
+            const kpi = this.companyKPIs.find(k => k.id === kpiId);
+            return kpi ? kpi.title : '';
+        },
+
+        getCompanyKPICategory(kpiId) {
+            const kpi = this.companyKPIs.find(k => k.id === kpiId);
+            return kpi ? kpi.category : '';
+        },
+
+        getBSCCategoryClass(category) {
+            switch (category) {
+                case '재무':
+                    return 'primary';
+                case '고객':
+                    return 'success';
+                case '프로세스':
+                    return 'warning';
+                case '학습과성장':
+                    return 'info';
+                default:
+                    return 'secondary';
+            }
         }
     }
 };

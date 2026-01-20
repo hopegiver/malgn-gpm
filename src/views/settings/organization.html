@@ -6,7 +6,7 @@
                 <h1 class="page-title">조직도 관리</h1>
                 <p class="page-subtitle">부서 및 팀 구조를 관리하세요</p>
             </div>
-            <button class="btn btn-primary" @click="openAddDeptModal" style="white-space: nowrap;">
+            <button class="btn btn-primary text-nowrap" @click="openAddDeptModal">
                 <i class="bi bi-plus-circle"></i> 부서 추가
             </button>
         </div>
@@ -24,7 +24,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h5 class="fw-bold mb-1">{{ dept.name }}</h5>
-                            <div class="text-secondary" style="font-size: 0.875rem;">{{ dept.totalMembers }}명</div>
+                            <div class="text-secondary small">{{ dept.totalMembers }}명</div>
                         </div>
                         <div class="dropdown">
                             <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
@@ -45,12 +45,12 @@
                     <div class="mb-3">
                         <div class="fw-medium mb-2">부서장</div>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="user-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                            <div class="user-avatar avatar-sm text-xs">
                                 {{ dept.head.name.charAt(0) }}
                             </div>
                             <div>
-                                <div style="font-size: 0.875rem;">{{ dept.head.name }}</div>
-                                <div class="text-secondary" style="font-size: 0.75rem;">{{ dept.head.email }}</div>
+                                <div class="small">{{ dept.head.name }}</div>
+                                <div class="text-secondary text-xs">{{ dept.head.email }}</div>
                             </div>
                         </div>
                     </div>
@@ -67,12 +67,12 @@
                         <div v-if="dept.teams && dept.teams.length > 0">
                             <div v-for="team in dept.teams" :key="team.id" class="mb-2">
                                 <div class="d-flex align-items-center gap-2 p-2 rounded" style="background: var(--gray-50);">
-                                    <div class="user-avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                    <div class="user-avatar avatar-sm text-xxs">
                                         {{ team.leader.name.charAt(0) }}
                                     </div>
                                     <div class="flex-grow-1">
-                                        <div style="font-size: 0.875rem;">{{ team.name }}</div>
-                                        <div class="text-secondary" style="font-size: 0.75rem;">
+                                        <div class="small">{{ team.name }}</div>
+                                        <div class="text-secondary text-xs">
                                             {{ team.leader.name }} · {{ team.members.length }}명
                                         </div>
                                     </div>
@@ -92,7 +92,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-else class="text-secondary text-center py-3" style="font-size: 0.875rem;">
+                        <div v-else class="text-secondary text-center py-3 small">
                             팀이 없습니다
                         </div>
                     </div>

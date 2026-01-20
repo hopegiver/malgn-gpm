@@ -1,8 +1,15 @@
 <div>
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">팀 목표 관리</h1>
-        <p class="page-subtitle">{{ teamName }} 팀의 목표를 설정하고 팀원들의 목표를 관리하세요</p>
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="page-title">팀 목표 관리</h1>
+                <p class="page-subtitle">{{ teamName }} 팀의 목표를 설정하고 팀원들의 목표를 관리하세요</p>
+            </div>
+            <button class="btn btn-primary" @click="openAddGoalModal">
+                <i class="bi bi-plus-circle"></i> 팀 목표 추가
+            </button>
+        </div>
     </div>
 
     <!-- Team Goal Stats -->
@@ -40,27 +47,6 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-4">
-                    <div class="d-flex gap-3 flex-wrap">
-                        <button class="btn btn-primary" @click="openAddGoalModal">
-                            <i class="bi bi-plus-circle"></i> 팀 목표 추가
-                        </button>
-                        <button class="btn btn-outline-primary" @click="alignGoals">
-                            <i class="bi bi-diagram-3"></i> 목표 정렬
-                        </button>
-                        <button class="btn btn-outline-secondary" @click="exportGoals">
-                            <i class="bi bi-download"></i> 목표 내보내기
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Team Goals List -->
     <div class="row g-4 mb-4">
         <div class="col-12">
@@ -83,10 +69,20 @@
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="flex-grow-1">
                                     <h6 class="fw-bold mb-1">{{ goal.title }}</h6>
+                                    <div v-if="goal.companyKPIId" class="mb-2">
+                                        <span class="badge small me-1" :class="'bg-' + getBSCCategoryClass(getCompanyKPICategory(goal.companyKPIId))">
+                                            {{ getCompanyKPICategory(goal.companyKPIId) }}
+                                        </span>
+                                        <span class="badge bg-light text-dark border small">
+                                            <i class="bi bi-link-45deg"></i> {{ getCompanyKPITitle(goal.companyKPIId) }}
+                                        </span>
+                                    </div>
                                     <p class="text-secondary mb-2 small">{{ goal.description }}</p>
-                                    <div class="d-flex gap-3 small text-secondary">
+                                    <div class="d-flex gap-3 small text-secondary flex-wrap">
                                         <span><i class="bi bi-calendar"></i> {{ goal.dueDate }}</span>
                                         <span><i class="bi bi-person"></i> {{ goal.owner }}</span>
+                                        <span><i class="bi bi-bullseye"></i> 목표: {{ goal.targetValue }}{{ goal.unit }}</span>
+                                        <span><i class="bi bi-graph-up"></i> 현재: {{ goal.currentValue }}{{ goal.unit }}</span>
                                         <span class="badge" :class="'bg-' + getStatusClass(goal.status)">{{ goal.status }}</span>
                                     </div>
                                 </div>
@@ -189,15 +185,70 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-medium">목표 제목</label>
+                        <label class="form-label fw-medium">연계 회사 KPI <span class="text-danger">*</span></label>
+                        <select class="form-select" v-model="goalForm.companyKPIId" required>
+                            <option value="">회사 KPI를 선택하세요</option>
+                            <optgroup label="재무 관점">
+                                <option v-for="kpi in financialKPIs" :key="kpi.id" :value="kpi.id">
+                                    {{ kpi.title }}
+                                </option>
+                            </optgroup>
+                            <optgroup label="고객 관점">
+                                <option v-for="kpi in customerKPIs" :key="kpi.id" :value="kpi.id">
+                                    {{ kpi.title }}
+                                </option>
+                            </optgroup>
+                            <optgroup label="프로세스 관점">
+                                <option v-for="kpi in processKPIs" :key="kpi.id" :value="kpi.id">
+                                    {{ kpi.title }}
+                                </option>
+                            </optgroup>
+                            <optgroup label="학습과성장 관점">
+                                <option v-for="kpi in learningKPIs" :key="kpi.id" :value="kpi.id">
+                                    {{ kpi.title }}
+                                </option>
+                            </optgroup>
+                        </select>
+                        <div class="form-text">팀 목표는 반드시 회사 KPI와 연계되어야 합니다.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">목표 제목 <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" v-model="goalForm.title"
-                               placeholder="예: Q1 신규 기능 개발 완료">
+                               placeholder="예: Q1 신규 기능 개발 완료" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-medium">목표 설명</label>
                         <textarea class="form-control" rows="3" v-model="goalForm.description"
                                   placeholder="목표에 대한 자세한 설명을 입력하세요"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-medium">목표 수치 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" v-model="goalForm.targetValue"
+                                   placeholder="100" required step="0.01">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-medium">현재 수치</label>
+                            <input type="number" class="form-control" v-model="goalForm.currentValue"
+                                   placeholder="75" step="0.01">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-medium">단위 <span class="text-danger">*</span></label>
+                            <select class="form-select" v-model="goalForm.unit" required>
+                                <option value="">선택하세요</option>
+                                <option value="%">% (퍼센트)</option>
+                                <option value="건">건</option>
+                                <option value="개">개</option>
+                                <option value="명">명</option>
+                                <option value="원">원 (KRW)</option>
+                                <option value="점">점</option>
+                                <option value="시간">시간</option>
+                                <option value="일">일</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="row">

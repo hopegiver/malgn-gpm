@@ -97,11 +97,11 @@ export default {
         redirectToDashboard(user) {
             // 역할에 따라 적절한 대시보드로 리다이렉트
             if (user.roles.includes(window.ROLES.EXECUTIVE) || user.roles.includes(window.ROLES.CEO)) {
-                window.location.hash = '#/dashboard/executive';
+                this.navigateTo('/dashboard/executive');
             } else if (user.roles.includes(window.ROLES.TEAM_LEADER) || user.roles.includes(window.ROLES.DEPT_HEAD)) {
-                window.location.hash = '#/dashboard/manager';
+                this.navigateTo('/dashboard/manager');
             } else {
-                window.location.hash = '#/dashboard/employee';
+                this.navigateTo('/dashboard/employee');
             }
         }
     }

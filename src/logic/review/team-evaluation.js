@@ -25,7 +25,7 @@ export default {
             (!user.roles.includes(window.ROLES.DEPT_HEAD) &&
              !user.roles.includes(window.ROLES.TEAM_LEADER))) {
             alert('팀장만 접근할 수 있습니다.');
-            window.location.hash = '#/dashboard/employee';
+            this.navigateTo('/dashboard/employee');
             return;
         }
 
@@ -101,7 +101,7 @@ export default {
         },
 
         viewEvaluation(memberId) {
-            window.location.hash = `#/review/evaluation/${memberId}`;
+            this.navigateTo('/review/evaluation', { id: memberId });
         }
     }
 };

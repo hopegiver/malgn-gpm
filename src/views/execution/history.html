@@ -10,25 +10,25 @@
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">이번 달 총 업무</div>
-                <div class="fw-bold" style="font-size: 2rem;">{{ monthlyStats.total }}</div>
+                <div class="fw-bold fs-2">{{ monthlyStats.total }}</div>
             </div>
         </div>
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">완료</div>
-                <div class="fw-bold text-success" style="font-size: 2rem;">{{ monthlyStats.completed }}</div>
+                <div class="fw-bold text-success fs-2">{{ monthlyStats.completed }}</div>
             </div>
         </div>
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">평균 일일 업무</div>
-                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ monthlyStats.avgDaily }}</div>
+                <div class="fw-bold text-primary fs-2">{{ monthlyStats.avgDaily }}</div>
             </div>
         </div>
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">완료율</div>
-                <div class="fw-bold" style="font-size: 2rem;">{{ monthlyStats.completionRate }}%</div>
+                <div class="fw-bold fs-2">{{ monthlyStats.completionRate }}%</div>
             </div>
         </div>
     </div>
@@ -50,7 +50,7 @@
             <!-- Calendar Header (Days of Week) -->
             <div class="row g-2 mb-2">
                 <div v-for="day in ['일', '월', '화', '수', '목', '금', '토']" :key="day"
-                     class="col text-center fw-bold text-secondary" style="font-size: 0.875rem;">
+                     class="col text-center fw-bold text-secondary small">
                     {{ day }}
                 </div>
             </div>

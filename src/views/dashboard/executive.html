@@ -19,7 +19,7 @@
                             <i class="bi bi-building"></i>
                         </div>
                     </div>
-                    <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress progress-sm mb-2">
                         <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(stats.companyGoalAchievement)"
                              role="progressbar" :style="{ width: stats.companyGoalAchievement + '%' }"
                              :aria-valuenow="stats.companyGoalAchievement" aria-valuemin="0" aria-valuemax="100"></div>
@@ -130,11 +130,11 @@
                                     <td class="text-secondary small">{{ dept.head }}</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="progress flex-grow-1" style="height: 6px; min-width: 100px;">
+                                            <div class="progress progress-xs flex-grow-1 min-w-100">
                                                 <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(dept.achievement)"
                                                      role="progressbar" :style="{ width: dept.achievement + '%' }"></div>
                                             </div>
-                                            <span class="small fw-semibold" style="min-width: 40px;">{{ dept.achievement }}%</span>
+                                            <span class="small fw-semibold min-w-40">{{ dept.achievement }}%</span>
                                         </div>
                                     </td>
                                     <td class="small">{{ dept.memberCount }}명</td>
@@ -176,7 +176,7 @@
                                 </span>
                             </div>
                             <div class="mb-2">
-                                <div class="progress" style="height: 8px;">
+                                <div class="progress progress-sm">
                                     <div class="progress-bar" :class="'bg-' + getBootstrapSignalClass(goal.achievement)"
                                          role="progressbar" :style="{ width: goal.achievement + '%' }"
                                          :aria-valuenow="goal.achievement" aria-valuemin="0" aria-valuemax="100"></div>
@@ -201,7 +201,7 @@
                     <h5 class="fw-bold mb-3">
                         <i class="bi bi-graph-up text-primary"></i> 분기별 성과 추이
                     </h5>
-                    <canvas ref="performanceTrendChart" style="max-height: 300px;"></canvas>
+                    <canvas ref="performanceTrendChart" class="chart-md"></canvas>
                 </div>
             </div>
         </div>
@@ -220,7 +220,7 @@
                             <span class="small text-secondary">인재 유지율</span>
                             <span class="fw-bold">{{ metrics.retentionRate }}%</span>
                         </div>
-                        <div class="progress" style="height: 6px;">
+                        <div class="progress progress-xs">
                             <div class="progress-bar bg-success" role="progressbar"
                                  :style="{ width: metrics.retentionRate + '%' }"></div>
                         </div>
@@ -231,7 +231,7 @@
                             <span class="small text-secondary">목표 설정 완료율</span>
                             <span class="fw-bold">{{ metrics.goalSetupRate }}%</span>
                         </div>
-                        <div class="progress" style="height: 6px;">
+                        <div class="progress progress-xs">
                             <div class="progress-bar bg-primary" role="progressbar"
                                  :style="{ width: metrics.goalSetupRate + '%' }"></div>
                         </div>
@@ -242,7 +242,7 @@
                             <span class="small text-secondary">교육 이수율</span>
                             <span class="fw-bold">{{ metrics.trainingRate }}%</span>
                         </div>
-                        <div class="progress" style="height: 6px;">
+                        <div class="progress progress-xs">
                             <div class="progress-bar bg-info" role="progressbar"
                                  :style="{ width: metrics.trainingRate + '%' }"></div>
                         </div>
@@ -253,7 +253,7 @@
                             <span class="small text-secondary">평가 완료율</span>
                             <span class="fw-bold">{{ metrics.evaluationRate }}%</span>
                         </div>
-                        <div class="progress" style="height: 6px;">
+                        <div class="progress progress-xs">
                             <div class="progress-bar bg-warning" role="progressbar"
                                  :style="{ width: metrics.evaluationRate + '%' }"></div>
                         </div>
@@ -274,19 +274,18 @@
                         <div v-for="(performer, index) in topPerformers" :key="performer.id"
                              class="list-group-item px-0 border-bottom">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="badge rounded-circle bg-primary flex-shrink-0"
-                                     style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                <div class="badge rounded-circle bg-primary flex-shrink-0 d-flex align-items-center justify-content-center avatar-sm">
                                     {{ index + 1 }}
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="fw-medium small">{{ performer.name }}</div>
-                                    <div class="text-secondary" style="font-size: 0.75rem;">
+                                    <div class="text-secondary text-xs">
                                         {{ performer.department }} • {{ performer.position }}
                                     </div>
                                 </div>
                                 <div class="text-end flex-shrink-0">
                                     <div class="fw-bold small text-success">{{ performer.score }}</div>
-                                    <div class="text-secondary" style="font-size: 0.7rem;">점</div>
+                                    <div class="text-secondary text-xxs">점</div>
                                 </div>
                             </div>
                         </div>
@@ -300,7 +299,7 @@
                     <h5 class="fw-bold mb-3">
                         <i class="bi bi-pie-chart text-success"></i> 목표 분포
                     </h5>
-                    <canvas ref="goalDistributionChart" style="max-height: 250px;"></canvas>
+                    <canvas ref="goalDistributionChart" class="chart-sm"></canvas>
                     <div class="mt-3">
                         <div class="d-flex justify-content-between align-items-center mb-2 small">
                             <span class="text-secondary">완료</span>

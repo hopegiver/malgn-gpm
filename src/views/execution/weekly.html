@@ -10,25 +10,25 @@
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">총 업무</div>
-                <div class="fw-bold" style="font-size: 2rem;">{{ weeklyStats.total }}</div>
+                <div class="fw-bold fs-2">{{ weeklyStats.total }}</div>
             </div>
         </div>
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">완료</div>
-                <div class="fw-bold text-success" style="font-size: 2rem;">{{ weeklyStats.completed }}</div>
+                <div class="fw-bold text-success fs-2">{{ weeklyStats.completed }}</div>
             </div>
         </div>
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">진행 중</div>
-                <div class="fw-bold text-primary" style="font-size: 2rem;">{{ weeklyStats.inProgress }}</div>
+                <div class="fw-bold text-primary fs-2">{{ weeklyStats.inProgress }}</div>
             </div>
         </div>
         <div class="col-12 col-md-3">
             <div class="stat-card rounded-3 p-4">
                 <div class="text-secondary fw-medium mb-2">완료율</div>
-                <div class="fw-bold" style="font-size: 2rem;">{{ weeklyStats.completionRate }}%</div>
+                <div class="fw-bold fs-2">{{ weeklyStats.completionRate }}%</div>
             </div>
         </div>
     </div>
@@ -66,7 +66,7 @@
                     </div>
 
                     <!-- Progress Bar -->
-                    <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress mb-3 progress-xs">
                         <div class="progress-bar" :class="getProgressBarClass(day.completionRate)"
                              :style="{ width: day.completionRate + '%' }"></div>
                     </div>
@@ -80,16 +80,16 @@
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <span :class="{ 'text-decoration-line-through text-secondary': task.completed }"
-                                          style="font-size: 0.875rem;">{{ task.title }}</span>
-                                    <span v-if="task.priority === 'high'" class="badge bg-danger" style="font-size: 0.65rem;">긴급</span>
+                                          class="small">{{ task.title }}</span>
+                                    <span v-if="task.priority === 'high'" class="badge bg-danger text-xxs">긴급</span>
                                 </div>
-                                <div v-if="task.goalTitle" class="text-secondary" style="font-size: 0.75rem;">
+                                <div v-if="task.goalTitle" class="text-secondary text-xs">
                                     <i class="bi bi-bullseye"></i> {{ task.goalTitle }}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div v-else class="text-center py-3 text-secondary" style="font-size: 0.875rem;">
+                    <div v-else class="text-center py-3 text-secondary small">
                         등록된 업무가 없습니다
                     </div>
                 </div>

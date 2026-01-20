@@ -69,15 +69,14 @@
 
                         <!-- Task Count -->
                         <div v-if="day.taskCount > 0" class="mb-1">
-                            <small class="badge" :class="day.completionRate >= 70 ? 'bg-success' : day.completionRate >= 40 ? 'bg-warning' : 'bg-danger'"
-                                   style="font-size: 0.65rem;">
+                            <small class="badge text-xxs" :class="day.completionRate >= 70 ? 'bg-success' : day.completionRate >= 40 ? 'bg-warning' : 'bg-danger'">
                                 {{ day.completedCount }}/{{ day.taskCount }}
                             </small>
                         </div>
 
                         <!-- Completion Indicator -->
-                        <div v-if="day.taskCount > 0" class="position-absolute bottom-0 start-0 w-100"
-                             style="height: 4px; background: var(--gray-200);">
+                        <div v-if="day.taskCount > 0" class="position-absolute bottom-0 start-0 w-100 progress-xxs"
+                             style="background: var(--gray-200);">
                             <div :style="{ width: day.completionRate + '%', height: '100%' }"
                                  :class="day.completionRate >= 70 ? 'bg-success' : day.completionRate >= 40 ? 'bg-warning' : 'bg-danger'"></div>
                         </div>
@@ -111,8 +110,8 @@
                                 <span class="fw-medium" :class="{ 'text-decoration-line-through text-secondary': task.completed }">
                                     {{ task.title }}
                                 </span>
-                                <span v-if="task.priority === 'high'" class="badge bg-danger" style="font-size: 0.7rem;">긴급</span>
-                                <span v-else-if="task.priority === 'medium'" class="badge bg-warning" style="font-size: 0.7rem;">보통</span>
+                                <span v-if="task.priority === 'high'" class="badge bg-danger text-xxs">긴급</span>
+                                <span v-else-if="task.priority === 'medium'" class="badge bg-warning text-xxs">보통</span>
                             </div>
                             <div v-if="task.goalTitle" class="text-secondary mb-2" style="font-size: 0.875rem;">
                                 <i class="bi bi-bullseye"></i> {{ task.goalTitle }}

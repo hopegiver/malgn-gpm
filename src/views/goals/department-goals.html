@@ -1,0 +1,239 @@
+<div class="container-fluid py-4">
+    <!-- 페이지 헤더 -->
+    <div class="page-header mb-4">
+        <h1 class="page-title">부서별 목표 현황</h1>
+        <p class="page-subtitle">각 부서의 목표 달성 현황을 모니터링합니다</p>
+    </div>
+
+    <!-- 전체 통계 카드 -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">전체 부서</div>
+                    <div class="stat-value">{{ totalDepartments }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">전체 목표</div>
+                    <div class="stat-value">{{ totalGoals }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">평균 달성률</div>
+                    <div class="stat-value">{{ averageAchievement }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">지연 목표</div>
+                    <div class="stat-value text-danger">{{ delayedGoals }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 필터 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">부서</label>
+                    <select class="form-select" v-model="filterDepartment">
+                        <option value="">전체 부서</option>
+                        <option v-for="dept in departments" :key="dept.id" :value="dept.name">
+                            {{ dept.name }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">달성률</label>
+                    <select class="form-select" v-model="filterAchievement">
+                        <option value="">전체</option>
+                        <option value="high">70% 이상 (양호)</option>
+                        <option value="medium">40-70% (주의)</option>
+                        <option value="low">40% 미만 (위험)</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">검색</label>
+                    <input type="text" class="form-control" v-model="searchKeyword" placeholder="부서명 또는 목표명 검색">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 부서별 목표 현황 -->
+    <div class="row g-4">
+        <div class="col-12" v-for="dept in filteredDepartments" :key="dept.id">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <h5 class="mb-0">{{ dept.name }}</h5>
+                            <span class="badge bg-primary">{{ dept.goals.length }}개 목표</span>
+                            <span class="text-muted">부서장: {{ dept.head }}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">평균 달성률</span>
+                            <span class="fs-5 fw-bold" :class="getAchievementClass(dept.averageAchievement)">
+                                {{ dept.averageAchievement }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div v-if="dept.goals.length === 0" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <p class="mb-0">등록된 목표가 없습니다</p>
+                    </div>
+                    <div v-else class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 10%;">BSC 관점</th>
+                                    <th style="width: 30%;">목표명</th>
+                                    <th style="width: 15%;">목표/현재</th>
+                                    <th style="width: 15%;">달성률</th>
+                                    <th style="width: 10%;">담당자</th>
+                                    <th style="width: 10%;">마감일</th>
+                                    <th style="width: 10%;">상태</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="goal in dept.goals" :key="goal.id" @click="viewGoalDetail(goal)" style="cursor: pointer;">
+                                    <td>
+                                        <span class="badge" :class="getCategoryBadgeClass(goal.category)">
+                                            {{ goal.category }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ goal.title }}</div>
+                                        <small class="text-muted">{{ goal.description }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="text-primary fw-semibold">{{ goal.currentValue }}</span> / {{ goal.targetValue }} {{ goal.unit }}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 8px;">
+                                                <div class="progress-bar" :class="getProgressClass(goal.achievement)"
+                                                     :style="{ width: goal.achievement + '%' }"></div>
+                                            </div>
+                                            <span class="text-nowrap" :class="getAchievementClass(goal.achievement)">
+                                                {{ goal.achievement }}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>{{ goal.owner }}</td>
+                                    <td>{{ formatDate(goal.dueDate) }}</td>
+                                    <td>
+                                        <span class="badge" :class="getStatusBadgeClass(goal.status)">
+                                            {{ goal.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 목표 상세 모달 -->
+    <div class="modal fade" id="goalDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">목표 상세</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" v-if="selectedGoal">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-2">목표명</h6>
+                            <p class="fs-5 fw-semibold">{{ selectedGoal.title }}</p>
+                        </div>
+                        <div class="col-12">
+                            <h6 class="text-muted mb-2">목표 설명</h6>
+                            <p>{{ selectedGoal.description }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">BSC 관점</h6>
+                            <span class="badge" :class="getCategoryBadgeClass(selectedGoal.category)">
+                                {{ selectedGoal.category }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">담당자</h6>
+                            <p>{{ selectedGoal.owner }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">목표 수치</h6>
+                            <p class="fs-5 fw-semibold">{{ selectedGoal.targetValue }} {{ selectedGoal.unit }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">현재 수치</h6>
+                            <p class="fs-5 fw-semibold text-primary">{{ selectedGoal.currentValue }} {{ selectedGoal.unit }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">달성률</h6>
+                            <p class="fs-5 fw-semibold" :class="getAchievementClass(selectedGoal.achievement)">
+                                {{ selectedGoal.achievement }}%
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <h6 class="text-muted mb-2">진행 현황</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar" :class="getProgressClass(selectedGoal.achievement)"
+                                     :style="{ width: selectedGoal.achievement + '%' }">
+                                    {{ selectedGoal.achievement }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">마감일</h6>
+                            <p>{{ formatDate(selectedGoal.dueDate) }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">상태</h6>
+                            <span class="badge" :class="getStatusBadgeClass(selectedGoal.status)">
+                                {{ selectedGoal.status }}
+                            </span>
+                        </div>
+                        <div class="col-12" v-if="selectedGoal.companyKPITitle">
+                            <h6 class="text-muted mb-2">연계된 회사 KPI</h6>
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-link-45deg"></i> {{ selectedGoal.companyKPITitle }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
